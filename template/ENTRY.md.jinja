@@ -1,0 +1,37 @@
+# {{ project_name }}
+
+## Layout
+
+```
+{{ project_slug }}/
+├── sop.md          # Source SOP (markdown)
+├── manifest.json   # Function specifications
+├── env.md          # External services docs
+├── UNFURL.md       # Code generation instructions
+├── ENTRY.md        # This file
+│
+├── skills/         # Reusable patterns (markdown)
+├── models/         # Pydantic data models
+├── functions/      # Function implementations
+└── tests/          # Pytest tests
+```
+
+## Function Pattern
+
+```python
+def function_name(data: InputModel) -> OutputModel:
+    """
+    Description.
+
+    SOP Reference:
+    > Cited text from sop.md
+    """
+    ...
+```
+
+## Naming
+
+- Models: `PascalCase` (e.g., `Invoice`, `ValidationResult`)
+- Functions: `snake_case` (e.g., `validate_invoice`)
+- Fields: `snake_case` (e.g., `vendor_name`)
+- Tests: `test_{function_name}.py`

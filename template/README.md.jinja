@@ -1,0 +1,26 @@
+# {{ project_name }}
+
+{{ description }}
+
+## Setup
+
+```bash
+uv sync
+```
+
+## Commands
+
+```bash
+uv run pytest          # Run tests
+uv run ruff check .    # Lint
+uv run ruff format .   # Format
+uv run ty check        # Type check
+```
+
+## Structure
+
+See [ENTRY.md](./ENTRY.md) for project layout.
+
+## Generating Code
+
+See [UNFURL.md](./UNFURL.md) for instructions on generating functions from manifest.
