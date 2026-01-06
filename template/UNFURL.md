@@ -102,7 +102,9 @@ def test_{name}_edge_cases():
 
 **IMPORTANT**: Write real assertions that verify the function implements the SOP correctly. Use concrete test values, not placeholders.
 
-## Step 4: Validate
+## Step 4: Validate (Recursive)
+
+Run validation commands and fix any issues until ALL checks pass:
 
 ```bash
 uv run ruff format .
@@ -110,3 +112,17 @@ uv run ruff check . --fix
 uv run ty check
 uv run pytest
 ```
+
+**IMPORTANT**: If any validation step fails:
+1. Analyze the error output carefully
+2. Debug and fix the issue in the relevant file(s)
+3. Re-run ALL validation commands from the beginning
+4. Repeat until all 4 commands pass with zero errors
+
+Do NOT proceed or consider the unfurl complete until:
+- `ruff format` runs without changes
+- `ruff check` reports no issues
+- `ty check` reports no type errors
+- `pytest` shows all tests passing
+
+This is a blocking requirement. Keep iterating until success.
