@@ -28,7 +28,17 @@ Generate Python code from `manifest.json`.
 }
 ```
 
-## Step 1: Generate Models
+## Step 1: Cleanup Stale Files
+
+Before generating code, validate existing files against `manifest.json`:
+
+1. Check `models/` - delete any model files not in `data_models`
+2. Check `functions/` - delete any function files not in `functions`
+3. Check `tests/` - delete any test files for functions no longer in manifest
+
+Keep `__init__.py` files. Update exports in `__init__.py` to remove deleted items.
+
+## Step 2: Generate Models
 
 For each `data_models` entry, create `models/{snake_case(name)}.py`:
 
@@ -43,7 +53,7 @@ class {name}(BaseModel):
 
 Add export to `models/__init__.py`.
 
-## Step 2: Generate Functions
+## Step 3: Generate Functions
 
 For each `functions` entry, create `functions/{name}.py` with a **complete working implementation**:
 
@@ -78,7 +88,7 @@ def {name}(data: {input_model}) -> {output_model}:
 
 Add export to `functions/__init__.py`.
 
-## Step 3: Generate Tests
+## Step 4: Generate Tests
 
 For each function, create `tests/test_{name}.py` with **real test cases**:
 
@@ -102,7 +112,7 @@ def test_{name}_edge_cases():
 
 **IMPORTANT**: Write real assertions that verify the function implements the SOP correctly. Use concrete test values, not placeholders.
 
-## Step 4: Validate (Recursive)
+## Step 5: Validate (Recursive)
 
 Run validation commands and fix any issues until ALL checks pass:
 
