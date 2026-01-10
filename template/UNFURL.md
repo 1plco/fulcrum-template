@@ -86,6 +86,20 @@ def {name}(data: {input_model}) -> {output_model}:
 
 **IMPORTANT**: Do NOT write stubs or `raise NotImplementedError()`. Write the complete, working implementation that fulfills the SOP requirement described in the citation.
 
+### File I/O Convention
+
+When functions need to read or write files:
+- Read input files from `input/` directory
+- Write output files to `output/` directory
+- Use `pathlib.Path` for path handling:
+
+```python
+from pathlib import Path
+
+INPUT_DIR = Path(__file__).parent.parent / "input"
+OUTPUT_DIR = Path(__file__).parent.parent / "output"
+```
+
 Add export to `functions/__init__.py`.
 
 ## Step 4: Generate Tests
