@@ -3,7 +3,22 @@ name = "{{ project_slug }}"
 version = "0.1.0"
 description = "{{ description }}"
 requires-python = ">={{ python_version }}"
-dependencies = ["pydantic>=2.0"]
+dependencies = [
+    "pydantic>=2.0",
+    # PDF skill
+    "pypdf>=4.0",
+    "pdf2image>=1.16",
+    "Pillow>=10.0",
+    "pdfplumber>=0.10",
+    "reportlab>=4.0",
+    # DOCX skill
+    "defusedxml>=0.7",
+    # XLSX skill
+    "openpyxl>=3.1",
+    "pandas>=2.0",
+    # OCR support
+    "pytesseract>=0.3",
+]
 
 [tool.uv]
 dev-dependencies = [

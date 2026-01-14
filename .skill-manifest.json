@@ -1,0 +1,108 @@
+{
+  "skills": {
+    "pdf": {
+      "commit_sha": "69c0b1a0674149f27b61b2635f935524b6add202",
+      "synced_at": "2026-01-14T02:10:03.971022+00:00",
+      "files": [
+        "LICENSE.txt",
+        "SKILL.md",
+        "forms.md",
+        "reference.md",
+        "check_bounding_boxes.py",
+        "check_bounding_boxes_test.py",
+        "check_fillable_fields.py",
+        "convert_pdf_to_images.py",
+        "create_validation_image.py",
+        "extract_form_field_info.py",
+        "fill_fillable_fields.py",
+        "fill_pdf_form_with_annotations.py"
+      ]
+    },
+    "docx": {
+      "commit_sha": "69c0b1a0674149f27b61b2635f935524b6add202",
+      "synced_at": "2026-01-14T02:09:59.970800+00:00",
+      "files": [
+        "LICENSE.txt",
+        "SKILL.md",
+        "docx-js.md",
+        "ooxml.md",
+        "dml-chart.xsd",
+        "dml-chartDrawing.xsd",
+        "dml-diagram.xsd",
+        "dml-lockedCanvas.xsd",
+        "dml-main.xsd",
+        "dml-picture.xsd",
+        "dml-spreadsheetDrawing.xsd",
+        "dml-wordprocessingDrawing.xsd",
+        "pml.xsd",
+        "shared-additionalCharacteristics.xsd",
+        "shared-bibliography.xsd",
+        "shared-commonSimpleTypes.xsd",
+        "shared-customXmlDataProperties.xsd",
+        "shared-customXmlSchemaProperties.xsd",
+        "shared-documentPropertiesCustom.xsd",
+        "shared-documentPropertiesExtended.xsd",
+        "shared-documentPropertiesVariantTypes.xsd",
+        "shared-math.xsd",
+        "shared-relationshipReference.xsd",
+        "sml.xsd",
+        "vml-main.xsd",
+        "vml-officeDrawing.xsd",
+        "vml-presentationDrawing.xsd",
+        "vml-spreadsheetDrawing.xsd",
+        "vml-wordprocessingDrawing.xsd",
+        "wml.xsd",
+        "xml.xsd",
+        "opc-contentTypes.xsd",
+        "opc-coreProperties.xsd",
+        "opc-digSig.xsd",
+        "opc-relationships.xsd",
+        "mc.xsd",
+        "wml-2010.xsd",
+        "wml-2012.xsd",
+        "wml-2018.xsd",
+        "wml-cex-2018.xsd",
+        "wml-cid-2016.xsd",
+        "wml-sdtdatahash-2020.xsd",
+        "wml-symex-2015.xsd",
+        "pack.py",
+        "unpack.py",
+        "validate.py",
+        "__init__.py",
+        "base.py",
+        "docx.py",
+        "pptx.py",
+        "redlining.py",
+        "__init__.py",
+        "document.py",
+        "comments.xml",
+        "commentsExtended.xml",
+        "commentsExtensible.xml",
+        "commentsIds.xml",
+        "people.xml",
+        "utilities.py"
+      ]
+    },
+    "internal-comms": {
+      "commit_sha": "69c0b1a0674149f27b61b2635f935524b6add202",
+      "synced_at": "2026-01-14T02:10:01.479229+00:00",
+      "files": [
+        "LICENSE.txt",
+        "SKILL.md",
+        "3p-updates.md",
+        "company-newsletter.md",
+        "faq-answers.md",
+        "general-comms.md"
+      ]
+    },
+    "xlsx": {
+      "commit_sha": "69c0b1a0674149f27b61b2635f935524b6add202",
+      "synced_at": "2026-01-14T02:10:04.626598+00:00",
+      "files": [
+        "LICENSE.txt",
+        "SKILL.md",
+        "recalc.py"
+      ]
+    }
+  }
+}

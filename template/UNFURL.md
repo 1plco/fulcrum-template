@@ -55,6 +55,8 @@ Add export to `models/__init__.py`.
 
 ## Step 3: Generate Functions
 
+**Before implementing**: Check if any skills in `skills/` can help. Read skill descriptions in SKILL.md frontmatter to find relevant capabilities.
+
 For each `functions` entry, create `functions/{name}.py` with a **complete working implementation**:
 
 ```python
@@ -99,6 +101,18 @@ from pathlib import Path
 INPUT_DIR = Path(__file__).parent.parent / "input"
 OUTPUT_DIR = Path(__file__).parent.parent / "output"
 ```
+
+### Skill Integration
+
+When implementing functions, use skills from `skills/` as reference documentation.
+
+#### How to Use Skills
+
+1. Read the relevant `SKILL.md` completely
+2. Find code patterns matching your function's requirements
+3. Adapt examples to work with your input/output models
+
+For complex skills with decision trees or multiple approaches, use extended thinking (ultrathink) to plan: What does the skill provide? How does it map to my models? What's the implementation sequence?
 
 Add export to `functions/__init__.py`.
 

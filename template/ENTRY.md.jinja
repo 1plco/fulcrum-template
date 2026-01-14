@@ -13,7 +13,7 @@
 ├── input/          # Input files for processing
 ├── output/         # Generated output files
 │
-├── skills/         # Reusable patterns (markdown)
+├── skills/         # Specialized capabilities (see Skills section)
 ├── models/         # Pydantic data models
 ├── functions/      # Function implementations
 └── tests/          # Pytest tests
@@ -23,6 +23,38 @@
 
 - **input/**: Place files here that functions need to process (e.g., documents, data files)
 - **output/**: Functions write their generated results here (e.g., reports, processed data)
+
+## Skills
+
+The `skills/` directory contains specialized capabilities with documentation and utilities.
+
+### Available Skills
+
+| Skill | Purpose |
+|-------|---------|
+| `pdf` | PDF manipulation - extract, create, merge, forms |
+| `xlsx` | Spreadsheet creation, editing, formula recalculation |
+| `docx` | Document creation, editing, tracked changes |
+| `internal-comms` | Internal communications templates |
+
+Each skill has a `SKILL.md` with frontmatter (`name`, `description`, `license`), usage guides, and supporting files.
+
+### Usage Patterns
+
+**Library Pattern** - Run skill utilities directly:
+```bash
+uv run skills/xlsx/recalc.py output.xlsx
+```
+
+**Snippet Pattern** - Copy and adapt code from skill documentation:
+- Read the SKILL.md for the relevant skill
+- Find code examples matching your use case
+- Adapt the pattern to your specific requirements
+
+**Agentic Pattern** - Runtime skill invocation for complex tasks:
+1. Read the skill's SKILL.md to understand capabilities
+2. Follow the skill's workflow instructions
+3. Use extended thinking (ultrathink) to plan thoroughly before implementation
 
 ## Function Pattern
 
