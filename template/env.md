@@ -1,17 +1,7 @@
 # Environment
 
-## External Services
+## Environment Variables
 
-| Service | Purpose | Base URL |
-|---------|---------|----------|
-| | | |
-
-## Databases
-
-| Name | Purpose |
-|------|---------|
-| | |
-
-## Configuration
-
-Document any environment variables or config needed.
+| Variable | Service | Skills |
+|----------|---------|--------|
+| `ANTHROPIC_API_KEY` | Claude API (injected by system) | `claude` |
