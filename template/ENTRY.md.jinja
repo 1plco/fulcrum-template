@@ -36,6 +36,7 @@ The `skills/` directory contains specialized capabilities with documentation and
 | `xlsx` | Spreadsheet creation, editing, formula recalculation |
 | `docx` | Document creation, editing, tracked changes |
 | `internal-comms` | Internal communications templates |
+| `claude` | LLM for text generation, JSON extraction, image analysis |
 
 Each skill has a `SKILL.md` with frontmatter (`name`, `description`, `license`), usage guides, and supporting files.
 
@@ -55,6 +56,15 @@ uv run skills/xlsx/recalc.py output.xlsx
 1. Read the skill's SKILL.md to understand capabilities
 2. Follow the skill's workflow instructions
 3. Use extended thinking (ultrathink) to plan thoroughly before implementation
+
+## Python Environment
+
+Use `uv` for all Python operations:
+
+- Run scripts: `uv run script.py`
+- Run with dependencies: `uv run --with package script.py`
+- Run tests: `uv run pytest`
+- Install dependencies: `uv sync`
 
 ## Function Pattern
 
