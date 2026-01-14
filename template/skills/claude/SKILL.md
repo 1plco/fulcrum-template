@@ -1,7 +1,7 @@
 ---
 name: claude
 description: "AI-powered natural language processing, text generation, JSON extraction from unstructured data, and image analysis using the Anthropic Claude API. Use when tasks require: (1) Writing or processing natural language text, (2) Extracting structured JSON from unstructured content, (3) Analyzing or describing images, (4) Generating human-readable content, (5) Summarizing or transforming text, (6) Any task requiring LLM intelligence. Environment variable ANTHROPIC_API_KEY must be set."
-license: Proprietary. LICENSE.txt has complete terms
+license: "© 2025 Daisyloop Technologies Inc. See LICENSE.txt"
 ---
 
 # Claude API Integration
