@@ -39,10 +39,14 @@ dev-dependencies = [
 
 [tool.ruff]
 line-length = 100
+extend-exclude = ["skills"]
 lint.select = ["E", "W", "F", "I", "B", "UP", "SIM"]
 
 [tool.ruff.lint.isort]
 known-first-party = ["functions", "models"]
+
+[tool.ty.src]
+include = ["functions", "models", "tests"]
 
 [tool.ty.environment]
 python-version = "{{ python_version }}"
