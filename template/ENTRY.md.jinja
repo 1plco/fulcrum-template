@@ -88,3 +88,47 @@ def function_name(data: InputModel) -> OutputModel:
 - Functions: `snake_case` (e.g., `validate_invoice`)
 - Fields: `snake_case` (e.g., `vendor_name`)
 - Tests: `test_{function_name}.py`
+
+## Agent Execution Guidelines
+
+### Output Handling
+When users request deliverables (files, reports, data exports), **always place them in the `output/` folder**. This is the designated location for all user-requested outputs and results.
+
+### Error Recovery & State Awareness
+When fixing execution errors in scripts, be mindful of code that has already run:
+
+- **Never re-run side-effect operations** that completed successfully:
+  - API calls that cause mutations
+  - Database writes
+  - Phone/SMS calls (phonic)
+  - External service interactions
+- **Print intermediate results** to stdout as a memory system for tracking previous step outputs
+- **Use execution methods that capture stdout** for debugging and state recovery
+
+### Script Correctness
+Scripts must be correct - take extra care during generation:
+
+- **Spend additional thinking time** on complex logic before writing code
+- **For tricky calls**, consider writing a test first to validate logic:
+  - Tests MUST mock all side effects (no real API calls, DB writes, phone calls)
+  - Use judgment on when tests are worth the time investment
+- **Validate assumptions** before making external calls
+
+### Script Decomposition
+Carefully consider single script vs. multiple scripts:
+
+- **Multiple scripts are preferred** when:
+  - Tasks have natural checkpoints
+  - Errors at any step need different handling
+  - Recovery from failures is important
+- **Benefits of decomposition**:
+  - Easier to react to errors at each step
+  - Better recovery from unforeseen situations
+  - Clear audit trail of what succeeded/failed
+
+### SOP Completion
+Execute all applicable SOP steps to completion:
+
+- Do not skip steps unless explicitly instructed
+- Handle each step thoroughly before proceeding
+- Report progress and any issues encountered
