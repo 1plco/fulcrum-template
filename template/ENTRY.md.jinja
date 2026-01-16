@@ -91,6 +91,15 @@ def function_name(data: InputModel) -> OutputModel:
 
 ## Agent Execution Guidelines
 
+### Implementation Priority
+When implementing functionality, prefer reusing existing code over writing new code:
+
+1. **functions/** - Check for pre-written functions first. These are tested, project-specific implementations.
+2. **skills/** - If no suitable function exists, use skill utilities and patterns from SKILL.md documentation.
+3. **Custom implementation** - Only write new code when existing functions and skills don't meet the requirement.
+
+This hierarchy ensures consistency, reduces errors, and leverages tested code.
+
 ### Output Handling
 When users request deliverables (files, reports, data exports), **always place them in the `output/` folder**. This is the designated location for all user-requested outputs and results.
 
