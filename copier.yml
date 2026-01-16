@@ -30,7 +30,6 @@ _skip_if_exists:
   - "sop.md"
   - "manifest.json"
   - "env.md"
-  - "skills/*"
   - "functions/*.py"
   - "models/*.py"
   - "tests/test_*.py"
