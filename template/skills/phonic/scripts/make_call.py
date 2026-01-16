@@ -4,7 +4,7 @@ Outbound phone call using Phonic AI telephone agent.
 
 Usage:
     python make_call.py "+1234567890" --system-prompt "You are a friendly assistant..."
-    python make_call.py "+1234567890" --system-prompt "..." --voice grant
+    python make_call.py "+1234567890" --system-prompt "..." --voice virginia
     python make_call.py "+1234567890" --system-prompt "..." --max-wait 900 --json
     python make_call.py "+1234567890" --system-prompt "..." --output-dir ./recordings
 
@@ -113,11 +113,12 @@ def download_audio(audio_url: str, conversation_id: str, output_dir: str) -> str
 def make_call(
     phone_number: str,
     system_prompt: str,
-    voice_id: str = "grant",
+    voice_id: str = "virginia",
     welcome_message: str | None = None,
     template_variables: dict[str, str] | None = None,
     languages: list[str] | None = None,
     boosted_keywords: list[str] | None = None,
+    tools: list[str] | None = None,
     max_wait_seconds: int = 600,
     poll_interval_seconds: int = 5,
     output_dir: str | None = None,
@@ -128,11 +129,12 @@ def make_call(
     Args:
         phone_number: Phone number to call (E.164 format, e.g., +1234567890)
         system_prompt: Instructions for the AI agent
-        voice_id: Voice selection (default: "grant")
+        voice_id: Voice selection (default: "virginia")
         welcome_message: Custom opening line (optional)
         template_variables: Variables for {{placeholder}} substitution
-        languages: ISO 639-1 language codes for recognition
+        languages: ISO 639-1 language codes for recognition ("en" always included)
         boosted_keywords: Words/phrases for better recognition
+        tools: Tool names to enable ("keypad_input" always included)
         max_wait_seconds: Maximum time to wait for call completion
         poll_interval_seconds: Interval between status checks
         output_dir: Directory to save audio recording (optional)
@@ -152,10 +154,21 @@ def make_call(
         config["welcome_message"] = welcome_message
     if template_variables:
         config["template_variables"] = template_variables
+
+    # Languages: always include "en"
+    config_languages = ["en"]
     if languages:
-        config["languages"] = languages
+        config_languages = list(dict.fromkeys(["en"] + languages))  # dedupe, en first
+    config["languages"] = config_languages
+
     if boosted_keywords:
         config["boosted_keywords"] = boosted_keywords
+
+    # Tools: always include "keypad_input"
+    config_tools = ["keypad_input"]
+    if tools:
+        config_tools = list(dict.fromkeys(["keypad_input"] + tools))  # dedupe
+    config["tools"] = config_tools
 
     # Initiate call
     print(f"Initiating call to {phone_number}...", file=sys.stderr)
@@ -249,8 +262,8 @@ def main():
     parser.add_argument(
         "--voice",
         "-v",
-        default="grant",
-        help="Voice ID (default: grant)",
+        default="virginia",
+        help="Voice ID (default: virginia)",
     )
     parser.add_argument(
         "--welcome-message",
@@ -268,6 +281,12 @@ def main():
         "-k",
         nargs="+",
         help="Words/phrases for better recognition",
+    )
+    parser.add_argument(
+        "--tools",
+        "-t",
+        nargs="+",
+        help="Tool names to enable (keypad_input always included)",
     )
     parser.add_argument(
         "--max-wait",
@@ -302,6 +321,7 @@ def main():
             welcome_message=args.welcome_message,
             languages=args.languages,
             boosted_keywords=args.boosted_keywords,
+            tools=args.tools,
             max_wait_seconds=args.max_wait,
             poll_interval_seconds=args.poll_interval,
             output_dir=args.output_dir,

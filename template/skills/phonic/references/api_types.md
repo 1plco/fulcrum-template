@@ -25,10 +25,10 @@ Configuration for `client.conversations.outbound_call()`. All fields are optiona
 | `system_prompt` | `str` | Instructions for agent behavior; supports `{{variable}}` templates |
 | `welcome_message` | `str` | Opening message; supports templates. Only specify if custom greeting needed |
 | `template_variables` | `dict[str, str]` | Values for `{{placeholder}}` substitution in prompts |
-| `voice_id` | `str` | Voice selection (default: "grant") |
-| `languages` | `list[str]` | ISO 639-1 codes for speech recognition (e.g., ["en", "es"]) |
+| `voice_id` | `str` | Voice selection (default: "virginia") |
+| `languages` | `list[str]` | ISO 639-1 codes for speech recognition ("en" always included) |
 | `boosted_keywords` | `list[str]` | Words/phrases for improved recognition accuracy |
-| `tools` | `list[str]` | Tool names to enable (built-in or custom) |
+| `tools` | `list[str]` | Tool names to enable ("keypad_input" always included) |
 | `no_input_poke_sec` | `int` | Seconds of silence before sending poke message; `None` disables |
 | `no_input_poke_text` | `str` | Message sent after silence period (default: "Are you still there?") |
 | `no_input_end_conversation_sec` | `int` | Seconds of silence before ending conversation |
@@ -38,10 +38,11 @@ Configuration for `client.conversations.outbound_call()`. All fields are optiona
 ```python
 config = {
     "system_prompt": "You are calling to confirm an appointment for {{name}}.",
-    "voice_id": "grant",
+    "voice_id": "virginia",
     "template_variables": {"name": "John Smith"},
-    "languages": ["en"],
+    "languages": ["es"],  # "en" is always included automatically
     "boosted_keywords": ["appointment", "reschedule"],
+    "tools": ["transfer_to_agent"],  # "keypad_input" is always included automatically
     "no_input_poke_sec": 30,
 }
 ```

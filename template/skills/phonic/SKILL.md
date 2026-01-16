@@ -24,7 +24,7 @@ result = client.conversations.outbound_call(
     to_phone_number="+1234567890",
     config={
         "system_prompt": "You are a friendly dental office assistant calling to confirm an appointment for tomorrow at 2pm. Be polite and concise.",
-        "voice_id": "grant",
+        "voice_id": "virginia",
     }
 )
 
@@ -36,7 +36,7 @@ Or use the provided script for complete call handling with polling:
 ```bash
 uv run skills/phonic/scripts/make_call.py "+1234567890" \
     --system-prompt "You are a friendly survey assistant collecting feedback." \
-    --voice grant
+    --voice virginia
 ```
 
 ## Call Configuration
@@ -48,7 +48,11 @@ Configure calls inline with `system_prompt` and `voice_id`. All config options o
 | Option | Description |
 |--------|-------------|
 | `system_prompt` | Instructions for the AI agent's behavior and goals |
-| `voice_id` | Voice selection (default: "grant") |
+| `voice_id` | Voice selection (default: "virginia") |
+
+**Note:** The following are always enabled by default:
+- `keypad_input` is always included in tools
+- `en` (English) is always included in languages
 
 ### Optional Options
 
@@ -56,9 +60,9 @@ Configure calls inline with `system_prompt` and `voice_id`. All config options o
 |--------|-------------|
 | `welcome_message` | Custom opening line. Only specify if you need a specific greeting; otherwise the agent generates one from system_prompt |
 | `template_variables` | Dict of variables for `{{variable}}` placeholders in prompts |
-| `languages` | ISO 639-1 codes for speech recognition (e.g., ["en", "es"]) |
+| `languages` | Additional ISO 639-1 codes for speech recognition ("en" always included, e.g., ["es"] adds Spanish) |
 | `boosted_keywords` | Words/phrases for improved recognition accuracy |
-| `tools` | List of tool names to enable (built-in or custom) |
+| `tools` | Additional tool names to enable ("keypad_input" always included) |
 | `no_input_poke_sec` | Seconds of silence before reminder message (default: 180) |
 | `no_input_poke_text` | Reminder message (default: "Are you still there?") |
 | `no_input_end_conversation_sec` | Seconds of silence before ending call |
@@ -70,9 +74,9 @@ result = client.conversations.outbound_call(
     to_phone_number="+1234567890",
     config={
         "system_prompt": "You are conducting a customer satisfaction survey for {{company}}. Ask about their recent experience.",
-        "voice_id": "grant",
+        "voice_id": "virginia",
         "template_variables": {"company": "Acme Corp"},
-        "languages": ["en", "es"],
+        "languages": ["es"],  # "en" is always included automatically
         "boosted_keywords": ["satisfaction", "rating", "feedback"],
         "no_input_poke_sec": 30,
     }
@@ -123,6 +127,40 @@ for item in conversation.items:
     text = item.post_call_transcript or item.live_transcript
     print(f"{speaker}: {text}")
 ```
+
+## Retrieving Past Calls
+
+Retrieve transcript and audio for any conversation by ID:
+
+```python
+from phonic import Phonic
+
+client = Phonic()
+response = client.conversations.get("conv_abc123")
+conversation = response.conversation
+
+# Transcript (prefer post-call for accuracy)
+transcript = conversation.post_call_transcript or conversation.live_transcript
+
+# Audio URL (presigned, may be .gz or .zip compressed)
+audio_url = conversation.audio_url
+```
+
+### Downloading Audio
+
+The `audio_url` may return compressed files (.gz or .zip). Use the `download_audio` helper from `make_call.py` or handle extraction manually:
+
+```python
+import gzip
+import urllib.request
+
+urllib.request.urlretrieve(audio_url, "recording.gz")
+with gzip.open("recording.gz", "rb") as f_in:
+    with open("recording.wav", "wb") as f_out:
+        f_out.write(f_in.read())
+```
+
+**Note:** Audio URLs are presigned and expire. Download promptly or re-fetch the conversation.
 
 ## Data Extraction with Claude
 
@@ -194,7 +232,7 @@ Complete outbound call workflow with polling, transcript output, and optional au
 ```bash
 uv run skills/phonic/scripts/make_call.py "+1234567890" \
     --system-prompt "You are a friendly assistant..." \
-    --voice grant \
+    --voice virginia \
     --max-wait 600 \
     --poll-interval 5 \
     --output-dir ./recordings \
@@ -204,8 +242,10 @@ uv run skills/phonic/scripts/make_call.py "+1234567890" \
 | Option | Default | Description |
 |--------|---------|-------------|
 | `--system-prompt` | Required | Agent instructions |
-| `--voice` | grant | Voice ID |
+| `--voice` | virginia | Voice ID |
 | `--welcome-message` | None | Custom opening (optional) |
+| `--languages` | None | Additional language codes ("en" always included) |
+| `--tools` | None | Additional tools ("keypad_input" always included) |
 | `--max-wait` | 600 | Max seconds to wait |
 | `--poll-interval` | 5 | Seconds between polls |
 | `--output-dir` | None | Directory to save audio recording (auto-extracts zip files) |
