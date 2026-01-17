@@ -116,6 +116,32 @@ For complex skills with decision trees or multiple approaches, use extended thin
 
 Add export to `functions/__init__.py`.
 
+### Dispatch Integration (Required)
+
+All generated functions MUST emit dispatch events using the fulcrum-sdk. Dispatches create a user-facing timeline of progress.
+
+**Setup:**
+```python
+from fulcrum_sdk._internal.dispatch import get_dispatch_client
+
+dispatch = get_dispatch_client()
+```
+
+**Required dispatch points:**
+- Start of major processing phases: `dispatch.dispatch_text("Starting invoice processing")`
+- External API calls: `dispatch.dispatch_api_call("Geocoding address", service="mapbox", operation="geocode")`
+- External references created: `dispatch.dispatch_external_ref("Browser task created", provider="browser-use", ref_type="task", ref_id=task_id)`
+- Database operations: `dispatch.dispatch_db("Inserted records", operation="insert", table="invoices", rows=15)`
+- Output model validation: `dispatch.dispatch_model("Validated output", model=result)`
+
+**Do NOT dispatch:**
+- Internal file reads/writes
+- Every tool call or iteration
+- Debug output (use stdout instead)
+- Sensitive data (credentials, PII)
+
+See `skills/fulcrum-sdk/SKILL.md` for complete API reference.
+
 ## Step 4: Generate Tests
 
 For each function, create `tests/test_{name}.py` with **real test cases**:
