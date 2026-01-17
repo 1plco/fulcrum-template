@@ -158,12 +158,13 @@ dispatch.dispatch_db(
 
 ### model
 
-Pydantic model validation events.
+Pydantic model display events. Shows actual model field values in the timeline.
 
 **Payload Schema:**
 ```python
 class ModelPayload:
     model_name: str          # Class name of the model (required)
+    data: dict | None        # Actual model field values (auto-serialized)
     input_summary: str | None # Brief description of input
     output_summary: str | None # Brief description of output
 ```
@@ -175,6 +176,7 @@ dispatch.dispatch_model(
     model=invoice_instance,
     input_summary="12 line items, total $1,234.56"
 )
+# Timeline will display: model: Invoice, temperature: 10, unit: celsius, etc.
 ```
 
 ## Redaction

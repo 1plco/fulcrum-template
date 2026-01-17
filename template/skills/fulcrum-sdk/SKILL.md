@@ -47,7 +47,7 @@ uv run skills/fulcrum-sdk/scripts/dispatch.py
 | Calling external APIs | `dispatch_api_call("Geocoding address", service="mapbox", ...)` |
 | Creating external references | `dispatch_external_ref("Browser task created", provider="browser-use", ...)` |
 | Database operations (with counts) | `dispatch_db("Inserted invoices", operation="insert", table="invoices", rows=15)` |
-| Pydantic model validation | `dispatch_model("Validated invoice data", model=invoice)` |
+| Pydantic model display | `dispatch_model("Validated invoice data", model=invoice)` |
 
 ### DO NOT Dispatch
 
@@ -69,7 +69,7 @@ Choose the dispatch kind based on what's most valuable to the user:
 | `api_call` | External API interaction is the key event | "Called Claude for extraction" |
 | `external_ref` | Creating a reference for later display | Browser task, generated file |
 | `db` | Database operation (include counts, not rows) | "Inserted 15 records" |
-| `model` | Pydantic validation (summary only) | "Validated Invoice model" |
+| `model` | Pydantic model display (shows field values) | "Validated Invoice model" |
 
 ## API Reference
 
@@ -135,14 +135,10 @@ dispatch.dispatch_external_ref(
     ref_id=result.conversation_id
 )
 
-# Generated document
-dispatch.dispatch_external_ref(
-    "Generated invoice PDF",
-    provider="pdf-skill",
-    ref_type="document",
-    ref_id="invoice-2024-001.pdf",
-    url="/output/invoice-2024-001.pdf"
-)
+# Note: dispatch_external_ref is ONLY for external services with hosted IDs
+# (e.g., browser-use tasks, phonic conversations). Do NOT use it for local
+# files in /output/ - those are automatically collected and uploaded after
+# execution. Users access them through the ticket files panel.
 ```
 
 ### dispatch_db(summary, operation, table, rows=None, query=None)
@@ -168,7 +164,7 @@ dispatch.dispatch_db(
 
 ### dispatch_model(summary, model, input_summary=None)
 
-Pydantic model validation. Shallow summary only.
+Display Pydantic model data as an intermediate step. The model's field values are automatically serialized and shown in the timeline.
 
 ```python
 from models.invoice import Invoice
@@ -179,6 +175,7 @@ dispatch.dispatch_model(
     model=invoice,
     input_summary="12 line items, total $1,234.56"
 )
+# Timeline will show: model: Invoice, temperature: 10, unit: celsius, etc.
 ```
 
 ## Best Practices

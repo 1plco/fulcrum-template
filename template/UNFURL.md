@@ -132,7 +132,7 @@ dispatch = get_dispatch_client()
 - External API calls: `dispatch.dispatch_api_call("Geocoding address", service="mapbox", operation="geocode")`
 - External references created: `dispatch.dispatch_external_ref("Browser task created", provider="browser-use", ref_type="task", ref_id=task_id)`
 - Database operations: `dispatch.dispatch_db("Inserted records", operation="insert", table="invoices", rows=15)`
-- Output model validation: `dispatch.dispatch_model("Validated output", model=result)`
+- Output model display: `dispatch.dispatch_model("Validated output", model=result)` (shows actual field values)
 
 **Do NOT dispatch:**
 - Internal file reads/writes
