@@ -42,14 +42,15 @@ The `skills/` directory contains specialized capabilities with documentation and
 
 | Skill | Purpose |
 |-------|---------|
-| `pdf` | PDF manipulation - extract, create, merge, forms |
-| `xlsx` | Spreadsheet creation, editing, formula recalculation |
-| `docx` | Document creation, editing, tracked changes |
+| `pdf` | Extract, create, merge, fill forms |
+| `xlsx` | Create, edit, recalculate formulas |
+| `docx` | Create, edit, tracked changes |
 | `internal-comms` | Internal communications templates |
-| `claude` | LLM for text generation, JSON extraction, image analysis |
-| `phonic` | AI telephone agent for outbound calls, transcripts |
-| `browser-use` | AI browser agent for web scraping, automation, research |
-| `mapbox` | Geocoding, directions, distance matrices, route optimization |
+| `claude` | Text generation, JSON extraction, image analysis |
+| `phonic` | AI phone agent for calls and transcripts |
+| `browser-use` | AI browser for scraping and automation |
+| `mapbox` | Geocoding, routing, distance matrices |
+| `fulcrum-sdk` | Dispatch to user-facing timeline |
 
 Each skill has a `SKILL.md` with frontmatter (`name`, `description`, `license`), usage guides, and supporting files.
 
@@ -112,6 +113,9 @@ This hierarchy ensures consistency, reduces errors, and leverages tested code.
 
 ### Output Handling
 When users request deliverables (files, reports, data exports), **always place them in the `output/` folder**. This is the designated location for all user-requested outputs and results.
+
+### Dispatch Milestones
+Use the `fulcrum-sdk` skill to emit user-facing timeline updates for significant steps (phase starts, API calls, file creation). See the skill for full dispatch guidance.
 
 ### Error Recovery & State Awareness
 When fixing execution errors in scripts, be mindful of code that has already run:

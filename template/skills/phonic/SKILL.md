@@ -39,6 +39,42 @@ uv run skills/phonic/scripts/make_call.py "+1234567890" \
     --voice virginia
 ```
 
+## Dispatching Calls
+
+**Always dispatch an `external_ref` immediately after initiating an outbound call.** This enables the timeline to track the conversation and potentially display transcripts/audio later.
+
+```python
+from phonic import Phonic
+from fulcrum_sdk._internal.dispatch import get_dispatch_client
+
+client = Phonic()
+result = client.conversations.outbound_call(
+    to_phone_number="+1234567890",
+    config={
+        "system_prompt": "You are a friendly dental office assistant calling to confirm an appointment.",
+        "voice_id": "virginia",
+    }
+)
+
+# Dispatch immediately after call initiation
+dispatch = get_dispatch_client()
+dispatch.dispatch_external_ref(
+    summary="Outbound call started",
+    provider="phonic",
+    ref_type="conversation",
+    ref_id=result.conversation_id,
+)
+
+# Then poll for completion...
+conversation_id = result.conversation_id
+```
+
+**Key points:**
+- Dispatch **immediately** after `outbound_call` returns (before polling)
+- Use `result.conversation_id` which is available right after call initiation
+- Provider is `"phonic"`, ref_type is `"conversation"`
+- This enables future display of transcripts and audio replay in the timeline
+
 ## Call Configuration
 
 Configure calls inline with `system_prompt` and `voice_id`. All config options override any pre-configured agent settings.

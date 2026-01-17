@@ -35,6 +35,39 @@ uv run skills/browser-use/scripts/execute_task.py "Find the top post on Hacker N
 
 **Note**: All tasks run on Browser Use Cloud which provides managed browsers. This requires `BROWSER_USE_API_KEY` to be set.
 
+## Dispatching Browser Tasks
+
+**Always dispatch an `external_ref` immediately after creating a browser task.** This enables the timeline to track the task and potentially display results later.
+
+```python
+from browser_use_sdk import BrowserUse
+from fulcrum_sdk._internal.dispatch import get_dispatch_client
+
+client = BrowserUse()
+task = client.tasks.create_task(
+    task="Find the top post on Hacker News and extract its title and URL",
+    llm="browser-use-llm",
+)
+
+# Dispatch immediately after task creation (id is available on task object)
+dispatch = get_dispatch_client()
+dispatch.dispatch_external_ref(
+    summary="Browser task created",
+    provider="browser-use",
+    ref_type="task",
+    ref_id=task.id,  # Available immediately from create_task response
+)
+
+result = task.complete()
+print(result.output)
+```
+
+**Key points:**
+- Dispatch **immediately** after `create_task` (before calling `complete()`)
+- Use `task.id` which is available right after task creation
+- Provider is `"browser-use"`, ref_type is `"task"`
+- Include a descriptive summary of what the task does
+
 ## LLM Selection
 
 | Model | API String | Cost/Step | Best For |
