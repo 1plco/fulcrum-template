@@ -5,7 +5,7 @@
 **IMPORTANT:** Before executing any task, you must:
 
 1. **Read `sop.md`** - Understand the full process and requirements
-2. **Read all files in `/functions`** - Understand what implementations already exist, their signatures, docstrings, and SOP references
+2. **Scan `/functions`** - Open only the files relevant to the task to understand existing implementations, signatures, docstrings, and SOP references
 3. **Understand fully how to use the dispatch system** - detailed under `skills/fulcrum-sdk`
 4. **Look up relevant skills in `/skills`** - Read the SKILL.md for any skills that may apply to your task
 
@@ -113,16 +113,10 @@ When implementing functionality, prefer reusing existing code over writing new c
 This hierarchy ensures consistency, reduces errors, and leverages tested code.
 
 ### Script Decomposition
-When writing implementations, think hard about whether to do it as a single script vs. multiple scripts:
+Default to multiple scripts for multi-step work. Each script should have a clear start/end, write a checkpoint to a temporary folder like `tmp/`, and accept inputs from the previous step. Only use a single script when the task is truly atomic.
 
-- **Multiple scripts are preferred** when:
-  - Tasks have natural checkpoints
-  - Errors at any step need different handling
-  - Recovery from failures is important
-- **Benefits of decomposition**:
-  - Easier to react to errors at each step
-  - Better recovery from unforeseen situations
-  - Clear audit trail of what succeeded/failed
+### Parallel Execution
+Run independent tasks in parallel when there are no data dependencies or shared side effects. Explicitly identify dependencies; only serialize when one step consumes outputs from another.
 
 ### Output Handling
 When users request deliverables (files, reports, data exports), **always place them in the `output/` folder**. This is the designated location for all user-requested outputs and results.
@@ -138,6 +132,9 @@ When fixing execution errors in scripts, be mindful of code that has already run
   - Database writes
   - Phone/SMS calls (phonic)
   - External service interactions
+- **Do not re-run completed steps**: If a multi-step script fails, create a new resume script that starts after the last successful step and reuses recorded outputs/IDs.
+- **Checkpoint outputs**: Write step outputs and identifiers (task IDs, filenames, counts) to a temporary folder like `tmp/` (create if missing) and print them to stdout. Do not write checkpoints to `output/`.
+- **Re-run only if required**: Never re-run a prior step unless it is strictly required by the SOP or necessary to complete the task.
 - **Print intermediate results** to stdout as a memory system for tracking previous step outputs
 - **Use execution methods that capture stdout** for debugging and state recovery
 
@@ -146,7 +143,7 @@ Scripts must be correct - take extra care during generation:
 
 - **Spend additional thinking time** on complex logic before writing code
 - **For tricky calls**, consider writing a test first to validate logic:
-  - Tests MUST mock all side effects (no real API calls, DB writes, phone calls)
+  - Tests MUST mock all side effects (no real API calls, DB writes, phone calls, dispatches)
   - Use judgment on when tests are worth the time investment
 - **Validate assumptions** before making external calls
 

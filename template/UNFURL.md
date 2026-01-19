@@ -166,6 +166,8 @@ def test_{name}_edge_cases():
 
 **IMPORTANT**: Write real assertions that verify the function implements the SOP correctly. Use concrete test values, not placeholders.
 
+**IMPORTANT**: Tests MUST mock dispatch and all external side effects (API calls, DB writes, phone calls, browser tasks). Do not emit real dispatches or call external services in tests.
+
 ## Step 5: Validate (Recursive)
 
 Run validation commands and fix any issues until ALL checks pass:
