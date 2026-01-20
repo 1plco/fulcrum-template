@@ -3,9 +3,9 @@
 Get directions between waypoints using Mapbox Directions API.
 
 Usage:
-    python get_directions.py "38.8977,-77.0365" "40.7484,-73.9857"
-    python get_directions.py "38.8977,-77.0365" "39.9526,-75.1652" "40.7484,-73.9857" --profile driving-traffic
-    python get_directions.py "38.8977,-77.0365" "40.7484,-73.9857" --steps --alternatives --json
+    uv run get_directions.py "38.8977,-77.0365" "40.7484,-73.9857"
+    uv run get_directions.py "38.8977,-77.0365" "39.9526,-75.1652" "40.7484,-73.9857" --profile driving-traffic
+    uv run get_directions.py "38.8977,-77.0365" "40.7484,-73.9857" --steps --alternatives --json
 
 Environment:
     MAPBOX_API_KEY must be set

@@ -3,10 +3,10 @@
 Text generation using Claude API.
 
 Usage:
-    python generate_text.py "Your prompt here"
-    python generate_text.py "Your prompt" --model claude-3-5-haiku-20241022
-    python generate_text.py "Your prompt" --system "You are a helpful assistant"
-    python generate_text.py "Your prompt" --temperature 0.7 --max-tokens 2048
+    uv run generate_text.py "Your prompt here"
+    uv run generate_text.py "Your prompt" --model claude-3-5-haiku-20241022
+    uv run generate_text.py "Your prompt" --system "You are a helpful assistant"
+    uv run generate_text.py "Your prompt" --temperature 0.7 --max-tokens 2048
 
 Environment:
     ANTHROPIC_API_KEY must be set

@@ -3,10 +3,10 @@
 Outbound phone call using Phonic AI telephone agent.
 
 Usage:
-    python make_call.py "+1234567890" --system-prompt "You are a friendly assistant..."
-    python make_call.py "+1234567890" --system-prompt "..." --voice virginia
-    python make_call.py "+1234567890" --system-prompt "..." --max-wait 900 --json
-    python make_call.py "+1234567890" --system-prompt "..." --output-dir ./recordings
+    uv run make_call.py "+1234567890" --system-prompt "You are a friendly assistant..."
+    uv run make_call.py "+1234567890" --system-prompt "..." --voice virginia
+    uv run make_call.py "+1234567890" --system-prompt "..." --max-wait 900 --json
+    uv run make_call.py "+1234567890" --system-prompt "..." --output-dir ./recordings
 
 Environment:
     PHONIC_API_KEY must be set

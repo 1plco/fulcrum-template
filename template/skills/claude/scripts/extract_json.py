@@ -3,9 +3,9 @@
 JSON extraction from unstructured text using Claude API.
 
 Usage:
-    python extract_json.py "John Smith, CTO at Acme Corp, email: john@acme.com"
-    python extract_json.py "Extract data from this text" --schema '{"name": "string", "email": "string"}'
-    python extract_json.py "Contract text here..." --schema-file schema.json
+    uv run extract_json.py "John Smith, CTO at Acme Corp, email: john@acme.com"
+    uv run extract_json.py "Extract data from this text" --schema '{"name": "string", "email": "string"}'
+    uv run extract_json.py "Contract text here..." --schema-file schema.json
 
 Environment:
     ANTHROPIC_API_KEY must be set

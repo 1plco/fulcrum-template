@@ -8,7 +8,7 @@ license: "© 2025 Daisyloop Technologies Inc. See LICENSE.txt"
 
 ## Before You Start
 
-> **Read `resources/RESOURCES.md` first** to understand available databases, table structures, column types, and relationships before writing any queries.
+> **Read `resources/RESOURCES.md` first** to understand available databases, table structures, column types, and relationships before writing any queries. Alternatively, run `scripts/inspect_schema.py` to discover schema programmatically.
 
 ## Overview
 
@@ -88,11 +88,18 @@ with engine.connect() as conn:
 
 ## Write Operations
 
-> **DESTRUCTIVE OPERATIONS WARNING**
-> - Always use transactions
-> - Prefer read-only operations when possible
-> - Confirm intent before DELETE/UPDATE on production data
-> - Test queries on small datasets first
+> **⚠️ EXTREME CAUTION REQUIRED**
+>
+> Write operations (INSERT, UPDATE, DELETE) **cannot be undone**. Always:
+> 1. **Use `--dry-run` first** to preview changes without committing
+> 2. **Verify the WHERE clause** - a missing or wrong WHERE affects all rows
+> 3. **Start with SELECT** - run the equivalent SELECT to see affected rows
+> 4. **Back up data** before bulk updates on production
+>
+> ```bash
+> # ALWAYS dry-run first
+> uv run scripts/execute_sql.py "UPDATE users SET active = false WHERE id = 123" --dry-run
+> ```
 
 ### Transactions
 
@@ -167,6 +174,27 @@ for chunk in chunks:
 4. **Close connections** - Use context managers (`with`) to ensure proper cleanup
 5. **Limit result sets** - Use `LIMIT` during development to avoid pulling large datasets
 
+## Scripts
+
+Ready-to-use scripts for common database operations:
+
+- `scripts/inspect_schema.py` - Discover tables, columns, keys, and indexes
+- `scripts/query_to_dataframe.py` - Execute queries and export as CSV/JSON
+- `scripts/execute_sql.py` - Run write operations with transaction safety and dry-run
+
+```bash
+# Examples
+uv run scripts/inspect_schema.py --table users
+uv run scripts/query_to_dataframe.py "SELECT * FROM orders" --format csv
+uv run scripts/execute_sql.py "UPDATE users SET active = true" --dry-run
+```
+
 ## References
 
-- `references/engines.md` - Engine-specific connection strings and quirks
+- `references/engines.md` - Connection strings, SQL dialect differences, and gotchas
+- `references/patterns.md` - Advanced SQL patterns:
+  - Window functions (ROW_NUMBER, LAG/LEAD, running totals)
+  - CTEs (recursive and non-recursive)
+  - Pivoting data
+  - Date/time operations by engine
+  - JSON operations by engine

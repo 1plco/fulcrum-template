@@ -230,3 +230,5 @@ def query_database(data: InputModel) -> OutputModel:
     conn_str = os.environ["DATABASE_URL"]  # From secret resource
     # ... query database ...
 ```
+
+For complete SQL patterns, scripts, and write operation safety guidelines, see `skills/sql/SKILL.md`.

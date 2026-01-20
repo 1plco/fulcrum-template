@@ -3,9 +3,9 @@
 Optimize multi-stop routes using Mapbox Optimization API v1.
 
 Usage:
-    python optimize_route.py "38.8977,-77.0365" "40.7484,-73.9857" "39.9526,-75.1652"
-    python optimize_route.py "38.8977,-77.0365" "40.7484,-73.9857" --no-roundtrip
-    python optimize_route.py "38.8977,-77.0365" "40.7484,-73.9857" "39.9526,-75.1652" --steps --json
+    uv run optimize_route.py "38.8977,-77.0365" "40.7484,-73.9857" "39.9526,-75.1652"
+    uv run optimize_route.py "38.8977,-77.0365" "40.7484,-73.9857" --no-roundtrip
+    uv run optimize_route.py "38.8977,-77.0365" "40.7484,-73.9857" "39.9526,-75.1652" --steps --json
 
 Environment:
     MAPBOX_API_KEY must be set

@@ -3,9 +3,9 @@
 Geocoding using Mapbox API - forward (address to coords) and reverse (coords to address).
 
 Usage:
-    python geocode.py "1600 Pennsylvania Ave NW, Washington, DC"
-    python geocode.py --reverse "38.8977,-77.0365"
-    python geocode.py "Paris" --country fr --types place --limit 3 --json
+    uv run geocode.py "1600 Pennsylvania Ave NW, Washington, DC"
+    uv run geocode.py --reverse "38.8977,-77.0365"
+    uv run geocode.py "Paris" --country fr --types place --limit 3 --json
 
 Environment:
     MAPBOX_API_KEY must be set

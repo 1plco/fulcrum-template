@@ -3,9 +3,9 @@
 Image analysis using Claude API.
 
 Usage:
-    python analyze_image.py image.png "Describe this image"
-    python analyze_image.py image.jpg "What text is visible?" --model claude-3-5-haiku-20241022
-    python analyze_image.py https://example.com/image.png "Analyze this chart"
+    uv run analyze_image.py image.png "Describe this image"
+    uv run analyze_image.py image.jpg "What text is visible?" --model claude-3-5-haiku-20241022
+    uv run analyze_image.py https://example.com/image.png "Analyze this chart"
 
 Environment:
     ANTHROPIC_API_KEY must be set

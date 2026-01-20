@@ -3,9 +3,9 @@
 Calculate distance/duration matrix using Mapbox Matrix API.
 
 Usage:
-    python get_matrix.py "38.8977,-77.0365" "40.7484,-73.9857" "39.9526,-75.1652"
-    python get_matrix.py "38.8977,-77.0365" "40.7484,-73.9857" --sources 0 --destinations 1
-    python get_matrix.py "38.8977,-77.0365" "40.7484,-73.9857" "39.9526,-75.1652" --profile walking --json
+    uv run get_matrix.py "38.8977,-77.0365" "40.7484,-73.9857" "39.9526,-75.1652"
+    uv run get_matrix.py "38.8977,-77.0365" "40.7484,-73.9857" --sources 0 --destinations 1
+    uv run get_matrix.py "38.8977,-77.0365" "40.7484,-73.9857" "39.9526,-75.1652" --profile walking --json
 
 Environment:
     MAPBOX_API_KEY must be set

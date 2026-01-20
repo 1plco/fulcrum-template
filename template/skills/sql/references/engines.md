@@ -149,3 +149,81 @@ engine = create_engine(os.environ["DATABASE_URL"], echo=True)
 # Clean up all connections (useful at end of script)
 engine.dispose()
 ```
+
+---
+
+## SQL Dialect Differences
+
+Quick reference for syntax differences across engines.
+
+### Row Limiting
+
+| Engine | Syntax |
+|--------|--------|
+| PostgreSQL | `LIMIT n` or `LIMIT n OFFSET m` |
+| MySQL | `LIMIT n` or `LIMIT m, n` |
+| SQLite | `LIMIT n` or `LIMIT n OFFSET m` |
+| SQL Server | `TOP n` or `OFFSET m ROWS FETCH NEXT n ROWS ONLY` |
+
+### String Functions
+
+| Operation | PostgreSQL | MySQL | SQLite | SQL Server |
+|-----------|------------|-------|--------|------------|
+| Concatenate | `'a' \|\| 'b'` | `CONCAT('a', 'b')` | `'a' \|\| 'b'` | `'a' + 'b'` or `CONCAT` |
+| Length | `LENGTH(s)` | `LENGTH(s)` | `LENGTH(s)` | `LEN(s)` |
+| Substring | `SUBSTRING(s, 1, 3)` | `SUBSTRING(s, 1, 3)` | `SUBSTR(s, 1, 3)` | `SUBSTRING(s, 1, 3)` |
+| Lowercase | `LOWER(s)` | `LOWER(s)` | `LOWER(s)` | `LOWER(s)` |
+| Trim | `TRIM(s)` | `TRIM(s)` | `TRIM(s)` | `LTRIM(RTRIM(s))` |
+
+### NULL Handling
+
+| Operation | PostgreSQL | MySQL | SQLite | SQL Server |
+|-----------|------------|-------|--------|------------|
+| Coalesce | `COALESCE(a, b)` | `COALESCE(a, b)` | `COALESCE(a, b)` | `COALESCE(a, b)` |
+| If null | `COALESCE(a, b)` | `IFNULL(a, b)` | `IFNULL(a, b)` | `ISNULL(a, b)` |
+| Null-safe = | `a IS NOT DISTINCT FROM b` | `a <=> b` | `a IS b` | N/A |
+
+### Auto-Increment
+
+| Engine | Definition | Get Last ID |
+|--------|------------|-------------|
+| PostgreSQL | `SERIAL` or `GENERATED AS IDENTITY` | `RETURNING id` |
+| MySQL | `AUTO_INCREMENT` | `SELECT LAST_INSERT_ID()` |
+| SQLite | `INTEGER PRIMARY KEY` | `SELECT last_insert_rowid()` |
+| SQL Server | `IDENTITY(1,1)` | `SELECT SCOPE_IDENTITY()` |
+
+### Boolean Type
+
+| Engine | Type | True | False |
+|--------|------|------|-------|
+| PostgreSQL | `BOOLEAN` | `TRUE` | `FALSE` |
+| MySQL | `BOOLEAN` (alias for TINYINT) | `1` | `0` |
+| SQLite | INTEGER | `1` | `0` |
+| SQL Server | `BIT` | `1` | `0` |
+
+---
+
+## Common Gotchas
+
+### PostgreSQL
+- **Case-sensitive identifiers**: Quoted identifiers (`"TableName"`) preserve case; unquoted are lowercased
+- **Single quotes only**: Use `'string'` for strings, `"identifier"` for identifiers
+- **Array indexing**: Arrays are 1-based, not 0-based
+
+### MySQL
+- **Case sensitivity**: Table names case-sensitive on Linux, insensitive on Windows/macOS
+- **Backticks for identifiers**: Use `` `column` `` not `"column"`
+- **ONLY_FULL_GROUP_BY**: Non-aggregated columns in SELECT must be in GROUP BY (default since 5.7)
+- **Zero dates**: `0000-00-00` is valid unless `NO_ZERO_DATE` mode enabled
+
+### SQLite
+- **Type affinity**: No strict types; `INTEGER`, `TEXT`, etc. are affinities, not constraints
+- **Single writer**: Only one write transaction at a time; reads can occur concurrently
+- **No ALTER COLUMN**: Use table rebuild to change column types
+- **Boolean**: No native boolean; use `0` and `1`
+
+### SQL Server
+- **Square brackets**: Use `[column]` for identifiers (or `"column"` with QUOTED_IDENTIFIER ON)
+- **GO is not SQL**: `GO` is a batch separator for SSMS, not part of T-SQL
+- **TOP requires ORDER BY**: `TOP` without `ORDER BY` returns arbitrary rows
+- **Datetime precision**: `DATETIME` has ~3.33ms precision; use `DATETIME2` for higher

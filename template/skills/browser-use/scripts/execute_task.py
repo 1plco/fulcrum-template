@@ -3,9 +3,9 @@
 Execute browser automation task using Browser Use Cloud.
 
 Usage:
-    python execute_task.py "Find the top post on Hacker News"
-    python execute_task.py "Search for Python tutorials" --llm gpt-4.1
-    python execute_task.py "Extract product prices" --output-schema schema.json --json
+    uv run execute_task.py "Find the top post on Hacker News"
+    uv run execute_task.py "Search for Python tutorials" --llm gpt-4.1
+    uv run execute_task.py "Extract product prices" --output-schema schema.json --json
 
 Environment:
     BROWSER_USE_API_KEY must be set
