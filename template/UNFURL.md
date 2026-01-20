@@ -57,6 +57,10 @@ Add export to `models/__init__.py`.
 
 **Before implementing**: Check if any skills in `skills/` can help. Read skill descriptions in SKILL.md frontmatter to find relevant capabilities.
 
+**Before writing code that interacts with external data:**
+1. **Database schemas** - If querying databases, read `resources/RESOURCES.md` to verify table structures, column names, and data types
+2. **Template files** - If reading/writing template files (Excel templates, Word documents, etc.) in `resources/` or `input/`, examine their actual format and structure first to ensure compatibility
+
 For each `functions` entry, create `functions/{name}.py` with a **complete working implementation**:
 
 ```python
@@ -192,3 +196,37 @@ Do NOT proceed or consider the unfurl complete until:
 - `pytest` shows all tests passing
 
 This is a blocking requirement. Keep iterating until success.
+
+## Resources Integration
+
+When implementing functions, check if project resources are available:
+
+1. **Read `resources/RESOURCES.md`** to see available data files and database schemas
+2. **Check `env.md`** for project-specific environment variables
+3. **Use resources appropriately**:
+   - File resources are in `resources/{resource-name}/` directories
+   - SQL connections use env vars from secret resources
+   - Reference file resources using relative paths from project root
+
+### Example: Using File Resources
+
+```python
+from pathlib import Path
+
+RESOURCES_DIR = Path(__file__).parent.parent / "resources"
+
+def process_data(data: InputModel) -> OutputModel:
+    # Read from file resource
+    data_file = RESOURCES_DIR / "customer-data" / "customers.csv"
+    # ... process file ...
+```
+
+### Example: Using SQL Resources
+
+```python
+import os
+
+def query_database(data: InputModel) -> OutputModel:
+    conn_str = os.environ["DATABASE_URL"]  # From secret resource
+    # ... query database ...
+```

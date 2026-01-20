@@ -13,3 +13,11 @@
 | `FULCRUM_TICKET_UUID` | Current ticket UUID (injected by system) | `fulcrum-sdk` |
 | `FULCRUM_RUN_UUID` | Current run UUID (injected by system) | `fulcrum-sdk` |
 | `FULCRUM_MESSAGE_UUID` | Current message UUID (injected by system) | `fulcrum-sdk` |
+
+<!-- FULCRUM:RESOURCES:START -->
+
+## Project Resources
+
+*No project resources configured.*
+
+<!-- FULCRUM:RESOURCES:END -->

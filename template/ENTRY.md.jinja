@@ -8,6 +8,8 @@
 2. **Scan `/functions`** - Open only the files relevant to the task to understand existing implementations, signatures, docstrings, and SOP references
 3. **Understand fully how to use the dispatch system** - detailed under `skills/fulcrum-sdk`
 4. **Look up relevant skills in `/skills`** - Read the SKILL.md for any skills that may apply to your task
+5. **Verify external data schemas** - Before writing code that interacts with databases, read `resources/RESOURCES.md` to understand table structures, column types, and relationships
+6. **Respect template file formats** - If working with template files (Excel, Word, etc.) in `resources/` or `input/`, examine their actual structure and format before generating code that reads/writes them
 
 Only after reviewing existing code should you plan your approach and begin execution.
 
@@ -24,11 +26,24 @@ Only after reviewing existing code should you plan your approach and begin execu
 ├── input/          # Input files for processing
 ├── output/         # Generated output files
 │
+├── resources/      # Project resources (data files, database schemas)
+│   └── RESOURCES.md  # Resource manifest (auto-generated)
+│
 ├── skills/         # Specialized capabilities (see Skills section)
 ├── models/         # Pydantic data models
 ├── functions/      # Function implementations
 └── tests/          # Pytest tests
 ```
+
+## Resources
+
+**IMPORTANT:** Before starting any task, check `resources/RESOURCES.md` for available project resources:
+
+- **File Resources**: Data files, documents, and reference materials in `resources/` subdirectories
+- **Database Resources**: SQL database schemas with table and column information
+- **Environment Variables**: Project-specific secrets and configuration (listed in `env.md`)
+
+Read the resources manifest to understand what data is available for your implementation.
 
 ## File I/O
 
@@ -52,6 +67,7 @@ The `skills/` directory contains specialized capabilities with documentation and
 | `browser-use` | AI browser for scraping and automation |
 | `mapbox` | Geocoding, routing, distance matrices |
 | `fulcrum-sdk` | Dispatch to user-facing timeline |
+| `sql` | Query databases, read into DataFrames |
 
 Each skill has a `SKILL.md` with frontmatter (`name`, `description`, `license`), usage guides, and supporting files.
 

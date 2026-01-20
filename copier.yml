@@ -33,3 +33,4 @@ _skip_if_exists:
   - "functions/*.py"
   - "models/*.py"
   - "tests/test_*.py"
+  - "resources/RESOURCES.md"
