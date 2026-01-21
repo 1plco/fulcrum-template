@@ -38,6 +38,9 @@ Before generating code, validate existing files against `manifest.json`:
 
 Keep `__init__.py` files. Update exports in `__init__.py` to remove deleted items.
 
+4. Check `functions/` logic and see if they still match `sop.md`
+5. Check persistence requirements again and see if any database migrations are needed. And then see which functions need updates to use the internal-db.
+
 ## Step 2: Generate Models
 
 For each `data_models` entry, create `models/{snake_case(name)}.py`:
