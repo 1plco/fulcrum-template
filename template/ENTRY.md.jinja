@@ -6,19 +6,24 @@
 
 ### Phase 1: Discovery (REQUIRED FIRST)
 1. **Read `sop.md`** - Understand the full process and requirements
-2. **Read `env.md`** - Check all available API keys and environment variables
-3. **Read relevant skills completely** - Look up ALL skills that may apply in `/skills`, read full SKILL.md (not just descriptions)
-4. **Scan `/functions`** - Understand existing implementations relevant to the task
-5. **Verify data schemas** - Read `resources/RESOURCES.md` and `resources/INTERNAL_DB.md`
+2. **Cross-reference `manifest.json`** - Each function in the manifest has a `citation` field that references specific sections of `sop.md`. Use this to find which functions in `/functions` implement each SOP section.
+3. **Read `env.md`** - Check all available API keys and environment variables
+4. **Read relevant skills completely** - Look up ALL skills that may apply in `/skills`, read full SKILL.md (not just descriptions)
+5. **Find existing functions** - Use `manifest.json` citations to locate implementations in `/functions/{function_name}.py` that handle each SOP requirement
+6. **Verify data schemas** - Read `resources/RESOURCES.md` and `resources/INTERNAL_DB.md`
 
-### Phase 2: Database Setup (REQUIRED BEFORE CODE)
-6. **Create migrations FIRST** - If you need persistent storage, create and run migration scripts before any function code
+### Phase 2: Database Verification (REQUIRED BEFORE CODE)
+7. **Check persistence requirements** - Does this task need to store, cache, or remember data across executions?
+8. **Review existing internal-db schema** - Read `resources/INTERNAL_DB.md` to see what tables already exist (migrations are typically applied during unfurl)
+9. **Verify tables exist** - If the task uses internal-db, confirm required tables are present. If missing, create AND APPLY migrations immediately.
+10. **Use existing functions** - Functions that interact with internal-db should already be implemented in `/functions`
 
 ### Phase 3: Implementation (ONLY AFTER PHASES 1-2)
-7. **Implement using REAL DATA ONLY** - Use skills to fetch live data, never use placeholders
-8. **Respect template formats** - Examine actual structure of files in `resources/` or `input/`
+11. **Implement using REAL DATA ONLY** - Use skills to fetch live data via available APIs. NEVER make up data, use placeholders, or simulate responses.
+12. **Verify data sources first** - Read database schemas in `resources/RESOURCES.md`, examine template file formats in `resources/` or `input/` before writing code that uses them
+13. **Use available tools** - Always call actual APIs and skills rather than fabricating what you think they might return
 
-**CRITICAL: Do NOT skip phases. Do NOT write code before reviewing skills and running migrations.**
+**CRITICAL: Do NOT skip phases. Do NOT write code before reviewing skills and running migrations. NOTHING should be made up - always use real data from available sources.**
 
 ## Layout
 
@@ -112,6 +117,22 @@ uv run skills/xlsx/recalc.py output.xlsx
 
 **Internal DB** is automatically provisioned per project. Check `resources/INTERNAL_DB.md` for current schema.
 
+### Internal Database Workflow
+
+Migrations are typically applied during unfurl. For ticket execution:
+
+1. **Check if internal-db is needed** - Does the task mention storing, caching, remembering, or persisting data?
+2. **Review existing schema** - Read `resources/INTERNAL_DB.md` to see current tables (already created during unfurl)
+3. **Find existing functions** - Check `/functions` for implementations that already handle internal-db operations
+4. **Verify tables exist** - If functions fail with missing table errors, migrations may not have been applied
+
+**If tables are missing** (rare - should have been created during unfurl):
+```bash
+uv run python migrations/001_create_table.py
+```
+
+See `skills/internal-db/SKILL.md` for connection patterns and `skills/internal-db/references/patterns.md` for common usage patterns.
+
 ## Python Environment
 
 Use `uv` for all Python operations:
@@ -152,15 +173,48 @@ When implementing functionality, prefer reusing existing code over writing new c
 
 This hierarchy ensures consistency, reduces errors, and leverages tested code.
 
+### Finding Functions via Manifest
+
+Use `manifest.json` to map SOP sections to existing function implementations:
+
+```json
+{
+  "functions": [
+    {
+      "name": "validate_invoice",
+      "citation": {"start": 150, "end": 280, "text": "exact text from SOP"},
+      ...
+    }
+  ]
+}
+```
+
+- Each function's `citation.text` shows which SOP section it implements
+- The function implementation lives at `/functions/{name}.py`
+- Cross-reference the citation text with `sop.md` to understand what each function handles
+- When a task references an SOP section, find the matching citation to locate the relevant function
+
 ### Real Data Requirements
 
-**CRITICAL: NEVER use placeholder, simulated, fake, or dummy data in production code.**
+**MANDATORY: Use Real Data Only. Nothing should be made up.**
 
-- No hardcoded sample values ("John Doe", "123 Main St", "test@example.com")
-- No simulated API responses
-- No fabricated database records
+Check `env.md` for available API keys, then use skills to fetch real data:
+- `browser-use` for web data
+- `sql` for external databases
+- `internal-db` for persistent storage
+- Files from `input/` or `resources/`
 
-**How to get real data** - Check `env.md` for available API keys, then use skills:
+**PROHIBITED - Never use these in production code:**
+- Hardcoded sample values ("John Doe", "123 Main St", "test@example.com")
+- Simulated API responses
+- Fabricated database records
+- Placeholder data of any kind
+- Made-up examples or dummy values
+
+**Before writing code that interacts with external data:**
+1. **Database schemas** - If querying databases, read `resources/RESOURCES.md` to verify table structures, column names, and data types
+2. **Template files** - If reading/writing template files (Excel templates, Word documents, etc.) in `resources/` or `input/`, examine their actual format and structure first to ensure compatibility
+3. **API responses** - Use the actual API via skills, never simulate what you think it might return
 
 | Data Need | Skill | Env Variable |
 |-----------|-------|--------------|
