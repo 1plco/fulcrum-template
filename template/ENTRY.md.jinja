@@ -37,10 +37,17 @@ Only after reviewing existing code should you plan your approach and begin execu
 
 ## Resources
 
-**IMPORTANT:** Before starting any task, check `resources/RESOURCES.md` for available project resources:
+**IMPORTANT:** Before starting any task, check available project resources:
+
+- **`resources/RESOURCES.md`** - File resources and external database schemas
+- **`resources/INTERNAL_DB.md`** - Internal persistent database schema (if provisioned)
+- **`env.md`** - Environment variables and secrets
+
+### Resource Types
 
 - **File Resources**: Data files, documents, and reference materials in `resources/` subdirectories
 - **Database Resources**: SQL database schemas with table and column information
+- **Internal Database**: Per-project DuckDB/MotherDuck database for persistent storage (see `INTERNAL_DB.md`)
 - **Environment Variables**: Project-specific secrets and configuration (listed in `env.md`)
 
 Read the resources manifest to understand what data is available for your implementation.

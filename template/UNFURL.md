@@ -202,10 +202,12 @@ This is a blocking requirement. Keep iterating until success.
 When implementing functions, check if project resources are available:
 
 1. **Read `resources/RESOURCES.md`** to see available data files and database schemas
-2. **Check `env.md`** for project-specific environment variables
-3. **Use resources appropriately**:
+2. **Read `resources/INTERNAL_DB.md`** to see internal database tables (for persistent storage)
+3. **Check `env.md`** for project-specific environment variables
+4. **Use resources appropriately**:
    - File resources are in `resources/{resource-name}/` directories
    - SQL connections use env vars from secret resources
+   - Internal DB uses `FULCRUM_INTERNAL_DB_RW` and `FULCRUM_INTERNAL_DB_NAME` env vars
    - Reference file resources using relative paths from project root
 
 ### Example: Using File Resources
@@ -232,3 +234,41 @@ def query_database(data: InputModel) -> OutputModel:
 ```
 
 For complete SQL patterns, scripts, and write operation safety guidelines, see `skills/sql/SKILL.md`.
+
+### Example: Using Internal Database
+
+The internal database is a per-project DuckDB/MotherDuck database for persistent storage across agent runs.
+
+```python
+import os
+import duckdb
+
+def store_results(data: InputModel) -> OutputModel:
+    token = os.environ.get("FULCRUM_INTERNAL_DB_RW")
+    db_name = os.environ.get("FULCRUM_INTERNAL_DB_NAME")
+
+    if not token or not db_name:
+        raise ValueError("Internal DB not configured")
+
+    conn = duckdb.connect(f"md:{db_name}?motherduck_token={token}")
+
+    # Create tables, insert data, or query results
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS results (
+            id INTEGER PRIMARY KEY,
+            data VARCHAR,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+
+    # Insert data
+    conn.execute("INSERT INTO results (id, data) VALUES (?, ?)", [1, "example"])
+
+    # Query data
+    result = conn.execute("SELECT * FROM results").fetchall()
+
+    conn.close()
+    return OutputModel(...)
+```
+
+**Note:** Check `resources/INTERNAL_DB.md` to see existing table schemas before creating new tables.
