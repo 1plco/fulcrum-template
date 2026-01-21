@@ -75,6 +75,7 @@ The `skills/` directory contains specialized capabilities with documentation and
 | `mapbox` | Geocoding, routing, distance matrices |
 | `fulcrum-sdk` | Dispatch to user-facing timeline |
 | `sql` | Query databases, read into DataFrames |
+| `internal-db` | Persist data across tickets using MotherDuck/DuckDB |
 
 Each skill has a `SKILL.md` with frontmatter (`name`, `description`, `license`), usage guides, and supporting files.
 
@@ -94,6 +95,15 @@ uv run skills/xlsx/recalc.py output.xlsx
 1. Read the skill's SKILL.md to understand capabilities
 2. Follow the skill's workflow instructions
 3. Use extended thinking (ultrathink) to plan thoroughly before implementation
+
+### Database Choice Guide
+
+| Use Case | Skill | Notes |
+|----------|-------|-------|
+| **Persist data across tickets** | `internal-db` | Project-scoped DuckDB, schema in `resources/INTERNAL_DB.md` |
+| **Query external databases** | `sql` | Read from user-provided connection strings in env vars; schema in `resources/RESOURCES.md` |
+
+**Internal DB** is automatically provisioned per project. Check `resources/INTERNAL_DB.md` for current schema.
 
 ## Python Environment
 
