@@ -53,6 +53,24 @@ class {name}(BaseModel):
 
 Add export to `models/__init__.py`.
 
+## Step 2.5: Create Database Migrations (Before Functions)
+
+**If functions need persistent storage, create migrations FIRST.**
+
+This step is MANDATORY before Step 3 when:
+- Functions need to persist state across executions
+- Functions need to cache expensive computations
+- The SOP mentions storing, caching, or remembering data
+
+### Migration Workflow
+
+1. Check `env.md` for `FULCRUM_INTERNAL_DB_RW` availability
+2. Review `resources/INTERNAL_DB.md` for existing tables
+3. Create migration script with `CREATE TABLE IF NOT EXISTS`
+4. Run migration before proceeding to Step 3
+
+See `skills/internal-db/SKILL.md` for migration patterns.
+
 ## Step 3: Generate Functions
 
 **Before implementing**: Check if any skills in `skills/` can help. Read skill descriptions in SKILL.md frontmatter to find relevant capabilities.
@@ -60,6 +78,16 @@ Add export to `models/__init__.py`.
 **Before writing code that interacts with external data:**
 1. **Database schemas** - If querying databases, read `resources/RESOURCES.md` to verify table structures, column names, and data types
 2. **Template files** - If reading/writing template files (Excel templates, Word documents, etc.) in `resources/` or `input/`, examine their actual format and structure first to ensure compatibility
+
+**MANDATORY: Use Real Data Only**
+
+Check `env.md` for available API keys, then use skills to fetch real data:
+- `browser-use` for web data
+- `sql` for external databases
+- `internal-db` for persistent storage
+- Files from `input/` or `resources/`
+
+**PROHIBITED:** Hardcoded sample values, fabricated data, simulated API responses.
 
 For each `functions` entry, create `functions/{name}.py` with a **complete working implementation**:
 
@@ -199,178 +227,15 @@ This is a blocking requirement. Keep iterating until success.
 
 ## Resources Integration
 
-When implementing functions, check if project resources are available:
+Before implementing, check available resources:
+1. **`resources/RESOURCES.md`** - File resources and external database schemas
+2. **`resources/INTERNAL_DB.md`** - Internal database tables
+3. **`env.md`** - Environment variables and API keys
 
-1. **Read `resources/RESOURCES.md`** to see available data files and database schemas
-2. **Read `resources/INTERNAL_DB.md`** to see internal database tables (for persistent storage)
-3. **Check `env.md`** for project-specific environment variables
-4. **Use resources appropriately**:
-   - File resources are in `resources/{resource-name}/` directories
-   - SQL connections use env vars from secret resources
-   - Internal DB uses `FULCRUM_INTERNAL_DB_RW` and `FULCRUM_INTERNAL_DB_NAME` env vars
-   - Reference file resources using relative paths from project root
+### Using Resources
 
-### Example: Using File Resources
+- **File resources**: Read from `resources/{resource-name}/` directories
+- **SQL databases**: Use connection string from env vars; see `skills/sql/SKILL.md`
+- **Internal DB**: Use `FULCRUM_INTERNAL_DB_RW` env var; see `skills/internal-db/SKILL.md` for migration patterns and dry-run testing
 
-```python
-from pathlib import Path
-
-RESOURCES_DIR = Path(__file__).parent.parent / "resources"
-
-def process_data(data: InputModel) -> OutputModel:
-    # Read from file resource
-    data_file = RESOURCES_DIR / "customer-data" / "customers.csv"
-    # ... process file ...
-```
-
-### Example: Using SQL Resources
-
-```python
-import os
-
-def query_database(data: InputModel) -> OutputModel:
-    conn_str = os.environ["DATABASE_URL"]  # From secret resource
-    # ... query database ...
-```
-
-For complete SQL patterns, scripts, and write operation safety guidelines, see `skills/sql/SKILL.md`.
-
-### Example: Using Internal Database
-
-The internal database is a per-project DuckDB/MotherDuck database for persistent storage across agent runs.
-
-#### When to Use Internal DB During Unfurl
-
-- Storing workflow state that persists between tickets
-- Caching expensive computations or API results
-- Maintaining lookup tables for business logic
-- Tracking execution history and audit logs
-
-#### Creating Migrations During Unfurl
-
-If your functions need persistent storage:
-
-1. **Check if internal DB is available**:
-   ```python
-   import os
-
-   if not os.environ.get('FULCRUM_INTERNAL_DB_RW'):
-       # Skip DB setup - will be available on next run
-       return
-   ```
-
-2. **Create tables idempotently** (use IF NOT EXISTS):
-   ```python
-   import os
-   import duckdb
-
-   def setup_internal_db():
-       token = os.environ['FULCRUM_INTERNAL_DB_RW']
-       db_name = os.environ['FULCRUM_INTERNAL_DB_NAME']
-
-       conn = duckdb.connect(f"md:{db_name}?motherduck_token={token}")
-       conn.execute("""
-           CREATE TABLE IF NOT EXISTS workflow_state (
-               id INTEGER PRIMARY KEY,
-               key VARCHAR NOT NULL UNIQUE,
-               value VARCHAR,
-               updated_at TIMESTAMP DEFAULT now()
-           )
-       """)
-       conn.close()
-   ```
-
-3. **Document schema in function docstrings** so the server-side introspection captures the intent.
-
-#### Dry-Run Testing for DB Operations
-
-**Always test DB operations before committing changes.** Use the dry-run pattern to verify queries work:
-
-```python
-def migrate_with_dry_run(conn, migration_sql: str, dry_run: bool = True):
-    """Test migration before applying. Always dry-run first during unfurl."""
-    try:
-        conn.execute("BEGIN TRANSACTION")
-        conn.execute(migration_sql)
-
-        if dry_run:
-            conn.execute("ROLLBACK")
-            print("DRY RUN: Changes rolled back. Verify output before applying.")
-            return {"status": "dry_run_success"}
-        else:
-            conn.execute("COMMIT")
-            return {"status": "applied"}
-
-    except Exception as e:
-        conn.execute("ROLLBACK")
-        print(f"Migration failed: {e}")
-        raise
-```
-
-**Usage during unfurl:**
-```python
-# Step 1: Dry-run to test
-result = migrate_with_dry_run(conn, "ALTER TABLE users ADD COLUMN email VARCHAR", dry_run=True)
-
-# Step 2: If dry-run succeeds, apply for real
-if result["status"] == "dry_run_success":
-    migrate_with_dry_run(conn, "ALTER TABLE users ADD COLUMN email VARCHAR", dry_run=False)
-```
-
-#### Safe Migration Workflow
-
-For schema changes, follow this workflow:
-
-1. **Inspect current schema** using `scripts/inspect_internal_db.py`
-2. **Backup existing data** (if modifying tables with data):
-   ```python
-   conn.execute("CREATE TABLE users_backup AS SELECT * FROM users")
-   ```
-3. **Dry-run migration** (wrap in transaction, rollback)
-4. **Apply migration** if dry-run succeeds
-5. **Verify data integrity** after migration
-
-#### Data Preservation Tips
-
-> **Never lose data during schema changes:**
-
-- **Never DROP TABLE** without backing up data first
-- **Use ALTER TABLE ADD COLUMN** instead of recreating tables
-- **For column type changes**, use the safe pattern:
-  ```python
-  # Step 1: Add new column
-  conn.execute("ALTER TABLE users ADD COLUMN email_new VARCHAR")
-
-  # Step 2: Copy data with transformation
-  conn.execute("UPDATE users SET email_new = LOWER(email)")
-
-  # Step 3: Verify data copied correctly
-  count = conn.execute("""
-      SELECT COUNT(*) FROM users
-      WHERE email_new IS NULL AND email IS NOT NULL
-  """).fetchone()[0]
-  assert count == 0, f"Data loss: {count} rows missing"
-
-  # Step 4: Drop old, rename new
-  conn.execute("ALTER TABLE users DROP COLUMN email")
-  conn.execute("ALTER TABLE users RENAME COLUMN email_new TO email")
-  ```
-
-- **Keep migration tracking table** to know what's been applied:
-  ```python
-  conn.execute("""
-      CREATE TABLE IF NOT EXISTS schema_migrations (
-          version INTEGER PRIMARY KEY,
-          name VARCHAR,
-          applied_at TIMESTAMP DEFAULT now()
-      )
-  """)
-  ```
-
-For complete migration patterns and examples, see `skills/internal-db/references/patterns.md`.
-
-#### Schema Documentation
-
-After unfurl completes, the server automatically introspects the database and generates `resources/INTERNAL_DB.md` with the current schema. Subsequent ticket executions can reference this file.
-
-**Note:** Check `resources/INTERNAL_DB.md` to see existing table schemas before creating new tables.
+**Note:** Check `resources/INTERNAL_DB.md` before creating tables. Server auto-generates schema docs after unfurl.

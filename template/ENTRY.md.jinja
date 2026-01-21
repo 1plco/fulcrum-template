@@ -2,16 +2,23 @@
 
 ## Before You Act
 
-**IMPORTANT:** Before executing any task, you must:
+**IMPORTANT:** Before executing any task, follow this EXACT sequence:
 
+### Phase 1: Discovery (REQUIRED FIRST)
 1. **Read `sop.md`** - Understand the full process and requirements
-2. **Scan `/functions`** - Open only the files relevant to the task to understand existing implementations, signatures, docstrings, and SOP references
-3. **Understand fully how to use the dispatch system** - detailed under `skills/fulcrum-sdk`
-4. **Look up relevant skills in `/skills`** - Read the SKILL.md for any skills that may apply to your task
-5. **Verify external data schemas** - Before writing code that interacts with databases, read `resources/RESOURCES.md` to understand table structures, column types, and relationships
-6. **Respect template file formats** - If working with template files (Excel, Word, etc.) in `resources/` or `input/`, examine their actual structure and format before generating code that reads/writes them
+2. **Read `env.md`** - Check all available API keys and environment variables
+3. **Read relevant skills completely** - Look up ALL skills that may apply in `/skills`, read full SKILL.md (not just descriptions)
+4. **Scan `/functions`** - Understand existing implementations relevant to the task
+5. **Verify data schemas** - Read `resources/RESOURCES.md` and `resources/INTERNAL_DB.md`
 
-Only after reviewing existing code should you plan your approach and begin execution.
+### Phase 2: Database Setup (REQUIRED BEFORE CODE)
+6. **Create migrations FIRST** - If you need persistent storage, create and run migration scripts before any function code
+
+### Phase 3: Implementation (ONLY AFTER PHASES 1-2)
+7. **Implement using REAL DATA ONLY** - Use skills to fetch live data, never use placeholders
+8. **Respect template formats** - Examine actual structure of files in `resources/` or `input/`
+
+**CRITICAL: Do NOT skip phases. Do NOT write code before reviewing skills and running migrations.**
 
 ## Layout
 
@@ -145,6 +152,28 @@ When implementing functionality, prefer reusing existing code over writing new c
 
 This hierarchy ensures consistency, reduces errors, and leverages tested code.
 
+### Real Data Requirements
+
+**CRITICAL: NEVER use placeholder, simulated, fake, or dummy data in production code.**
+
+- No hardcoded sample values ("John Doe", "123 Main St", "test@example.com")
+- No simulated API responses
+- No fabricated database records
+
+**How to get real data** - Check `env.md` for available API keys, then use skills:
+
+| Data Need | Skill | Env Variable |
+|-----------|-------|--------------|
+| Live web content | `browser-use` | `BROWSER_USE_API_KEY` |
+| Geographic data | `mapbox` | `MAPBOX_API_KEY` |
+| External databases | `sql` | Connection string in `resources/RESOURCES.md` |
+| Persistent storage | `internal-db` | `FULCRUM_INTERNAL_DB_RW` |
+| Phone responses | `phonic` | `PHONIC_API_KEY` |
+| AI text/extraction | `claude` | `ANTHROPIC_API_KEY` |
+| Documents | `pdf`, `xlsx`, `docx` | N/A (file-based) |
+
+**Exception:** Tests are the ONLY place mock data is acceptable. Tests MUST mock all external side effects.
+
 ### Script Decomposition
 Default to multiple scripts for multi-step work. Each script should have a clear start/end, write a checkpoint to a temporary folder like `tmp/`, and accept inputs from the previous step. Only use a single script when the task is truly atomic.
 
@@ -157,28 +186,10 @@ When users request deliverables (files, reports, data exports), **always place t
 ### Dispatch Milestones
 Use the `fulcrum-sdk` skill to emit user-facing timeline updates for significant steps (phase starts, API calls, file creation). See the skill for full dispatch guidance.
 
-### Error Recovery & State Awareness
-When fixing execution errors in scripts, be mindful of code that has already run:
-
-- **Never re-run side-effect operations** that completed successfully:
-  - API calls that cause mutations
-  - Database writes
-  - Phone/SMS calls (phonic)
-  - External service interactions
-- **Do not re-run completed steps**: If a multi-step script fails, create a new resume script that starts after the last successful step and reuses recorded outputs/IDs.
-- **Checkpoint outputs**: Write step outputs and identifiers (task IDs, filenames, counts) to a temporary folder like `tmp/` (create if missing) and print them to stdout. Do not write checkpoints to `output/`.
-- **Re-run only if required**: Never re-run a prior step unless it is strictly required by the SOP or necessary to complete the task.
-- **Print intermediate results** to stdout as a memory system for tracking previous step outputs
-- **Use execution methods that capture stdout** for debugging and state recovery
-
-### Script Correctness
-Scripts must be correct - take extra care during generation:
-
-- **Spend additional thinking time** on complex logic before writing code
-- **For tricky calls**, consider writing a test first to validate logic:
-  - Tests MUST mock all side effects (no real API calls, DB writes, phone calls, dispatches)
-  - Use judgment on when tests are worth the time investment
-- **Validate assumptions** before making external calls
+### Error Recovery
+- **Never re-run completed side effects** (API mutations, DB writes, phone calls)
+- **Checkpoint to `tmp/`** - Write step outputs and IDs for resume capability
+- **Resume from last success** - Create new script starting after failed step
 
 ### SOP Completion
 Execute all applicable SOP steps to completion:
