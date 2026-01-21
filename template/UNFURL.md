@@ -56,9 +56,9 @@ class {name}(BaseModel):
 
 Add export to `models/__init__.py`.
 
-## Step 2.5: Create Database Migrations (Before Functions)
+## Step 2.5: Create and Apply Database Migrations (Before Functions)
 
-**If functions need persistent storage, create migrations FIRST.**
+**If functions need persistent storage, create AND APPLY migrations FIRST.**
 
 This step is MANDATORY before Step 3 when:
 - Functions need to persist state across executions
@@ -69,8 +69,34 @@ This step is MANDATORY before Step 3 when:
 
 1. Check `env.md` for `FULCRUM_INTERNAL_DB_RW` availability
 2. Review `resources/INTERNAL_DB.md` for existing tables
-3. Create migration script with `CREATE TABLE IF NOT EXISTS`
-4. Run migration before proceeding to Step 3
+3. Create migration file in `migrations/` with `CREATE TABLE IF NOT EXISTS` statements
+4. **APPLY the migration immediately** by running the migration script
+
+**CRITICAL**: Do NOT just create migration files - you MUST execute them. The internal database must be fully operational after unfurl completes. Run the migration script to apply all schema changes before proceeding to Step 3.
+
+```bash
+# Apply migrations
+uv run python migrations/001_initial.py
+```
+
+Or apply directly in Python:
+```python
+import os
+import duckdb
+
+token = os.environ["FULCRUM_INTERNAL_DB_RW"]
+db_name = os.environ["FULCRUM_INTERNAL_DB_NAME"]
+conn = duckdb.connect(f"md:{db_name}?motherduck_token={token}")
+
+# Execute CREATE TABLE statements
+conn.execute("""
+    CREATE TABLE IF NOT EXISTS your_table (
+        id INTEGER PRIMARY KEY,
+        ...
+    )
+""")
+conn.close()
+```
 
 See `skills/internal-db/SKILL.md` for migration patterns.
 
@@ -242,3 +268,14 @@ Before implementing, check available resources:
 - **Internal DB**: Use `FULCRUM_INTERNAL_DB_RW` env var; see `skills/internal-db/SKILL.md` for migration patterns and dry-run testing
 
 **Note:** Check `resources/INTERNAL_DB.md` before creating tables. Server auto-generates schema docs after unfurl.
+
+## Completion Checklist
+
+**The unfurl is NOT complete until ALL of these conditions are met:**
+
+1. ✅ All validation commands pass (ruff format, ruff check, ty check, pytest)
+2. ✅ All functions are fully implemented (no stubs, no `NotImplementedError`)
+3. ✅ **Internal database is operational** - migrations have been APPLIED, not just created
+4. ✅ All tests pass with mocked external services
+
+**Internal Database Requirement**: If any function uses the internal database, verify the tables exist by running a test query after applying migrations. The database must be in a working state - ticket execution will fail if functions try to query non-existent tables.
