@@ -34,3 +34,4 @@ _skip_if_exists:
   - "models/*.py"
   - "tests/test_*.py"
   - "resources/RESOURCES.md"
+  - "resources/INTERNAL_DB.md"
