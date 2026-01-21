@@ -147,7 +147,36 @@ task = client.tasks.create_task(
 )
 ```
 
-### 5. Multi-Page Scraping
+### 5. Handling Sensitive Data (Logins, Credentials)
+
+Use the `secrets` parameter to securely pass credentials. The LLM sees only placeholders - actual values are injected by the browser agent at runtime.
+
+```python
+task = client.tasks.create_task(
+    task="Go to example.com/login, enter {{username}} and {{password}}, then click Login",
+    secrets={
+        "username": "my_actual_username",
+        "password": "my_actual_password",
+    },
+    llm="browser-use-llm",
+)
+```
+
+Or via CLI:
+
+```bash
+uv run skills/browser-use/scripts/execute_task.py \
+    "Log into example.com with {{username}} and {{password}}" \
+    --secrets '{"username": "user", "password": "pass"}'
+```
+
+**Key points:**
+- Use `{{key}}` placeholders in your task string
+- Pass actual values via the `secrets` dict
+- The LLM never sees the real credentials
+- Values are injected when the browser fills form fields
+
+### 6. Multi-Page Scraping
 
 ```python
 from browser_use_sdk import AsyncBrowserUse
@@ -215,6 +244,7 @@ uv run skills/browser-use/scripts/execute_task.py "Find Python jobs on HN" \
 | `--timeout` | 15 | Task timeout in minutes |
 | `--llm` | browser-use-llm | LLM model to use |
 | `--json` | False | Output as JSON |
+| `--secrets` | None | JSON dict for credential injection (see section 5) |
 
 ## Use Cases
 

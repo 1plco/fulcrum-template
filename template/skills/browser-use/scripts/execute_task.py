@@ -30,6 +30,7 @@ def execute_task(
     output_dir: Path | None = None,
     timeout_minutes: int = 15,
     llm: str = "browser-use-llm",
+    secrets: dict[str, str] | None = None,
 ) -> dict:
     """
     Execute a browser automation task via Browser Use Cloud.
@@ -41,6 +42,9 @@ def execute_task(
         output_dir: Directory for output files (default: output/)
         timeout_minutes: Task timeout in minutes (default: 15)
         llm: LLM model to use (default: browser-use-llm)
+        secrets: Dict of secrets for credential injection. Use placeholders like
+            {{key}} in the task string. The LLM sees placeholders, actual values
+            are injected by the browser agent. Example: {"username": "user", "password": "pass"}
 
     Returns:
         dict with task_id, status, result, structured_output, etc.
@@ -52,6 +56,7 @@ def execute_task(
         output_dir=output_dir,
         timeout_minutes=timeout_minutes,
         llm=llm,
+        secrets=secrets,
     ))
 
 
@@ -62,6 +67,7 @@ async def _execute_task_async(
     output_dir: Path | None = None,
     timeout_minutes: int = 15,
     llm: str = "browser-use-llm",
+    secrets: dict[str, str] | None = None,
 ) -> dict:
     """Async implementation of execute_task."""
     start_time = time.time()
@@ -103,6 +109,8 @@ async def _execute_task_async(
         }
         if output_schema:
             task_config["schema"] = output_schema
+        if secrets:
+            task_config["secrets"] = secrets
 
         task_obj = await client.tasks.create_task(**task_config)
         task_id = task_obj.id if hasattr(task_obj, "id") else f"task_{int(start_time * 1000)}"
@@ -219,6 +227,10 @@ def main():
         action="store_true",
         help="Output result as JSON",
     )
+    parser.add_argument(
+        "--secrets",
+        help='JSON dict of secrets for credential injection, e.g. \'{"username": "x", "password": "y"}\'',
+    )
 
     args = parser.parse_args()
 
@@ -230,6 +242,15 @@ def main():
     # Parse output directory
     output_dir = Path(args.output_dir) if args.output_dir else None
 
+    # Parse secrets if provided
+    secrets = None
+    if args.secrets:
+        try:
+            secrets = json.loads(args.secrets)
+        except json.JSONDecodeError as e:
+            print(f"Error: Invalid JSON for --secrets: {e}", file=sys.stderr)
+            sys.exit(1)
+
     result = execute_task(
         task=args.task,
         output_schema=output_schema,
@@ -237,6 +258,7 @@ def main():
         output_dir=output_dir,
         timeout_minutes=args.timeout,
         llm=args.llm,
+        secrets=secrets,
     )
 
     if result["status"] == "failed" and result.get("error") == "BROWSER_USE_API_KEY not set":

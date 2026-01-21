@@ -45,6 +45,7 @@ client = AsyncBrowserUse(api_key="bu_...")
 | `task` | `str` | Yes | Natural language task description |
 | `llm` | `str` | No | LLM model (default: "browser-use-llm") |
 | `schema` | `BaseModel` | No | Pydantic model for structured output |
+| `secrets` | `Dict[str, str]` | No | Secrets for credential injection. Use `{{key}}` placeholders in task. |
 
 ### Available LLM Models
 
