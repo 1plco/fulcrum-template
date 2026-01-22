@@ -1,5 +1,5 @@
 ## Kick Start
-- [ ] Read UNFURL.md and sop.md; understand requirement and decompose them into Task List section
+- [ ] Read UNFURL.md and sop.md; understand requirement and decompose them into Task List section; NOTE: NEVER attempt to do all of the task at once. Find reasonable chunks to work on at any given time. 
 
 ## Task List
 
