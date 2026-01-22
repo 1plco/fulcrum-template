@@ -657,8 +657,13 @@ run_brownfield_task() {
   # Run the AI engine (tee to show output while saving for parsing)
   case "$AI_ENGINE" in
     claude)
+      local claude_args=()
+      if [[ "$OUTPUT_FORMAT" == "stream-json" ]]; then
+        claude_args+=(--output-format stream-json --verbose)
+      fi
       claude --dangerously-skip-permissions \
         ${MODEL_OVERRIDE:+--model "$MODEL_OVERRIDE"} \
+        "${claude_args[@]}" \
         -p "$prompt" 2>&1 | tee "$output_file"
       ;;
     opencode)
