@@ -54,6 +54,9 @@ GITHUB_LABEL=""
 # Browser automation (agent-browser)
 BROWSER_ENABLED="auto"  # auto, true, false
 
+# Output format
+OUTPUT_FORMAT="text"  # text or stream-json
+
 # Colors (detect if terminal supports colors)
 if [[ -t 1 ]] && command -v tput &>/dev/null && [[ $(tput colors 2>/dev/null || echo 0) -ge 8 ]]; then
   RED=$(tput setaf 1)
@@ -92,25 +95,59 @@ ORIGINAL_BASE_BRANCH=""  # Original base branch before integration branches
 # UTILITY FUNCTIONS
 # ============================================
 
+# Emit a stream-json event (for hybrid output mode)
+emit_json_event() {
+  local event_type="$1"
+  local message="$2"
+  local timestamp
+  timestamp=$(date +%s%3N 2>/dev/null || echo $(($(date +%s) * 1000)))
+
+  # Escape message for JSON
+  local escaped_message
+  escaped_message=$(printf '%s' "$message" | sed 's/\\/\\\\/g; s/"/\\"/g; s/\t/\\t/g' | tr '\n' ' ')
+
+  echo "{\"type\":\"system\",\"subtype\":\"$event_type\",\"message\":\"$escaped_message\",\"timestamp\":$timestamp}"
+}
+
 log_info() {
-  echo "${BLUE}[INFO]${RESET} $*"
+  if [[ "$OUTPUT_FORMAT" == "stream-json" ]]; then
+    emit_json_event "info" "$*"
+  else
+    echo "${BLUE}[INFO]${RESET} $*"
+  fi
 }
 
 log_success() {
-  echo "${GREEN}[OK]${RESET} $*"
+  if [[ "$OUTPUT_FORMAT" == "stream-json" ]]; then
+    emit_json_event "success" "$*"
+  else
+    echo "${GREEN}[OK]${RESET} $*"
+  fi
 }
 
 log_warn() {
-  echo "${YELLOW}[WARN]${RESET} $*"
+  if [[ "$OUTPUT_FORMAT" == "stream-json" ]]; then
+    emit_json_event "warning" "$*"
+  else
+    echo "${YELLOW}[WARN]${RESET} $*"
+  fi
 }
 
 log_error() {
-  echo "${RED}[ERROR]${RESET} $*" >&2
+  if [[ "$OUTPUT_FORMAT" == "stream-json" ]]; then
+    emit_json_event "error" "$*"
+  else
+    echo "${RED}[ERROR]${RESET} $*" >&2
+  fi
 }
 
 log_debug() {
   if [[ "$VERBOSE" == true ]]; then
-    echo "${DIM}[DEBUG] $*${RESET}"
+    if [[ "$OUTPUT_FORMAT" == "stream-json" ]]; then
+      emit_json_event "debug" "$*"
+    else
+      echo "${DIM}[DEBUG] $*${RESET}"
+    fi
   fi
 }
 
@@ -920,6 +957,10 @@ parse_args() {
         BROWSER_ENABLED="false"
         shift
         ;;
+      --output-format)
+        OUTPUT_FORMAT="${2:-text}"
+        shift 2
+        ;;
       -*)
         log_error "Unknown option: $1"
         echo "Use --help for usage"
@@ -1629,49 +1670,87 @@ run_ai_command() {
   local prompt=$1
   local output_file=$2
 
-  case "$AI_ENGINE" in
-    opencode)
-      # OpenCode: use 'run' command with JSON format and permissive settings
-      OPENCODE_PERMISSION='{"*":"allow"}' opencode run \
-        ${MODEL_OVERRIDE:+--model "$MODEL_OVERRIDE"} \
-        --format json \
-        "$prompt" > "$output_file" 2>&1 &
-      ;;
-    cursor)
-      # Cursor agent: use --print for non-interactive, --force to allow all commands
-      agent --print --force \
-        --output-format stream-json \
-        "$prompt" > "$output_file" 2>&1 &
-      ;;
-    qwen)
-      # Qwen-Code: use CLI with JSON format and auto-approve tools
-      qwen --output-format stream-json \
-        --approval-mode yolo \
-        -p "$prompt" > "$output_file" 2>&1 &
-      ;;
-    droid)
-      # Droid: use exec with stream-json output and medium autonomy for development
-      droid exec --output-format stream-json \
-        --auto medium \
-        "$prompt" > "$output_file" 2>&1 &
-      ;;
-    codex)
-      CODEX_LAST_MESSAGE_FILE="${output_file}.last"
-      rm -f "$CODEX_LAST_MESSAGE_FILE"
-      codex exec --full-auto \
-        --json \
-        --output-last-message "$CODEX_LAST_MESSAGE_FILE" \
-        "$prompt" > "$output_file" 2>&1 &
-      ;;
-    *)
-      # Claude Code: use existing approach
-      claude --dangerously-skip-permissions \
-        ${MODEL_OVERRIDE:+--model "$MODEL_OVERRIDE"} \
-        --verbose \
-        --output-format stream-json \
-        -p "$prompt" > "$output_file" 2>&1 &
-      ;;
-  esac
+  # When OUTPUT_FORMAT is stream-json, use tee to stream to stdout while capturing to file
+  # Otherwise, just redirect to file (for spinner progress display)
+  if [[ "$OUTPUT_FORMAT" == "stream-json" ]]; then
+    case "$AI_ENGINE" in
+      opencode)
+        OPENCODE_PERMISSION='{"*":"allow"}' opencode run \
+          ${MODEL_OVERRIDE:+--model "$MODEL_OVERRIDE"} \
+          --format json \
+          "$prompt" 2>&1 | tee "$output_file" &
+        ;;
+      cursor)
+        agent --print --force \
+          --output-format stream-json \
+          "$prompt" 2>&1 | tee "$output_file" &
+        ;;
+      qwen)
+        qwen --output-format stream-json \
+          --approval-mode yolo \
+          -p "$prompt" 2>&1 | tee "$output_file" &
+        ;;
+      droid)
+        droid exec --output-format stream-json \
+          --auto medium \
+          "$prompt" 2>&1 | tee "$output_file" &
+        ;;
+      codex)
+        CODEX_LAST_MESSAGE_FILE="${output_file}.last"
+        rm -f "$CODEX_LAST_MESSAGE_FILE"
+        codex exec --full-auto \
+          --json \
+          --output-last-message "$CODEX_LAST_MESSAGE_FILE" \
+          "$prompt" 2>&1 | tee "$output_file" &
+        ;;
+      *)
+        claude --dangerously-skip-permissions \
+          ${MODEL_OVERRIDE:+--model "$MODEL_OVERRIDE"} \
+          --verbose \
+          --output-format stream-json \
+          -p "$prompt" 2>&1 | tee "$output_file" &
+        ;;
+    esac
+  else
+    case "$AI_ENGINE" in
+      opencode)
+        OPENCODE_PERMISSION='{"*":"allow"}' opencode run \
+          ${MODEL_OVERRIDE:+--model "$MODEL_OVERRIDE"} \
+          --format json \
+          "$prompt" > "$output_file" 2>&1 &
+        ;;
+      cursor)
+        agent --print --force \
+          --output-format stream-json \
+          "$prompt" > "$output_file" 2>&1 &
+        ;;
+      qwen)
+        qwen --output-format stream-json \
+          --approval-mode yolo \
+          -p "$prompt" > "$output_file" 2>&1 &
+        ;;
+      droid)
+        droid exec --output-format stream-json \
+          --auto medium \
+          "$prompt" > "$output_file" 2>&1 &
+        ;;
+      codex)
+        CODEX_LAST_MESSAGE_FILE="${output_file}.last"
+        rm -f "$CODEX_LAST_MESSAGE_FILE"
+        codex exec --full-auto \
+          --json \
+          --output-last-message "$CODEX_LAST_MESSAGE_FILE" \
+          "$prompt" > "$output_file" 2>&1 &
+        ;;
+      *)
+        claude --dangerously-skip-permissions \
+          ${MODEL_OVERRIDE:+--model "$MODEL_OVERRIDE"} \
+          --verbose \
+          --output-format stream-json \
+          -p "$prompt" > "$output_file" 2>&1 &
+        ;;
+    esac
+  fi
 
   ai_pid=$!
 }
@@ -1857,8 +1936,12 @@ run_single_task() {
   completed=$(count_completed_tasks | tr -d '[:space:]')
   remaining=${remaining:-0}
   completed=${completed:-0}
-  echo "${DIM}    Completed: $completed | Remaining: $remaining${RESET}"
-  echo "--------------------------------------------"
+  if [[ "$OUTPUT_FORMAT" == "stream-json" ]]; then
+    emit_json_event "progress" "Completed: $completed | Remaining: $remaining"
+  else
+    echo "${DIM}    Completed: $completed | Remaining: $remaining${RESET}"
+    echo "--------------------------------------------"
+  fi
 
   # Get current task for display
   local current_task
@@ -1903,21 +1986,27 @@ run_single_task() {
     # Start AI command
     run_ai_command "$prompt" "$tmpfile"
 
-    # Start progress monitor in background
-    monitor_progress "$tmpfile" "${current_task:0:40}" &
-    monitor_pid=$!
+    # Start progress monitor in background (skip for stream-json mode)
+    if [[ "$OUTPUT_FORMAT" != "stream-json" ]]; then
+      monitor_progress "$tmpfile" "${current_task:0:40}" &
+      monitor_pid=$!
+    fi
 
     # Wait for AI to finish
     wait "$ai_pid" 2>/dev/null || true
 
-    # Stop the monitor
-    kill "$monitor_pid" 2>/dev/null || true
-    wait "$monitor_pid" 2>/dev/null || true
-    monitor_pid=""
+    # Stop the monitor (if running)
+    if [[ -n "$monitor_pid" ]]; then
+      kill "$monitor_pid" 2>/dev/null || true
+      wait "$monitor_pid" 2>/dev/null || true
+      monitor_pid=""
+    fi
 
-    # Show completion
-    tput cr 2>/dev/null || printf "\r"
-    tput el 2>/dev/null || true
+    # Show completion (skip terminal control for stream-json mode)
+    if [[ "$OUTPUT_FORMAT" != "stream-json" ]]; then
+      tput cr 2>/dev/null || printf "\r"
+      tput el 2>/dev/null || true
+    fi
 
     # Read result
     local result
@@ -1968,11 +2057,14 @@ run_single_task() {
     local actual_cost
     actual_cost=$(echo "$token_data" | sed -n '3p')
 
-    printf "  ${GREEN}✓${RESET} %-16s │ %s\n" "Done" "${current_task:0:40}"
+    # Show completion (skip for stream-json mode - the AI output already contains result event)
+    if [[ "$OUTPUT_FORMAT" != "stream-json" ]]; then
+      printf "  ${GREEN}✓${RESET} %-16s │ %s\n" "Done" "${current_task:0:40}"
 
-    if [[ -n "$response" ]]; then
-      echo ""
-      echo "$response"
+      if [[ -n "$response" ]]; then
+        echo ""
+        echo "$response"
+      fi
     fi
 
     # Sanitize values
@@ -2846,6 +2938,19 @@ Be careful to preserve functionality from BOTH branches. The goal is to integrat
 # ============================================
 
 show_summary() {
+  if [[ "$OUTPUT_FORMAT" == "stream-json" ]]; then
+    # Emit a final summary event in JSON format
+    local cost
+    cost=$(calculate_cost "$total_input_tokens" "$total_output_tokens" 2>/dev/null || echo "0")
+    if [[ ! "$cost" =~ ^[0-9]+([.][0-9]+)?$ ]]; then
+      cost="0"
+    fi
+    local timestamp
+    timestamp=$(date +%s%3N 2>/dev/null || echo $(($(date +%s) * 1000)))
+    echo "{\"type\":\"result\",\"subtype\":\"success\",\"num_turns\":$iteration,\"total_cost_usd\":$cost,\"input_tokens\":$total_input_tokens,\"output_tokens\":$total_output_tokens,\"timestamp\":$timestamp}"
+    return
+  fi
+
   echo ""
   echo "${BOLD}============================================${RESET}"
   echo "${GREEN}PRD complete!${RESET} Finished $iteration task(s)."
@@ -2987,22 +3092,27 @@ main() {
   # Check requirements
   check_requirements
 
-  # Show banner
-  echo "${BOLD}============================================${RESET}"
-  echo "${BOLD}Ralphy${RESET} - Running until PRD is complete"
-  local engine_display
-  case "$AI_ENGINE" in
-    opencode) engine_display="${CYAN}OpenCode${RESET}" ;;
-    cursor) engine_display="${YELLOW}Cursor Agent${RESET}" ;;
-    codex) engine_display="${BLUE}Codex${RESET}" ;;
-    qwen) engine_display="${GREEN}Qwen-Code${RESET}" ;;
-    droid) engine_display="${MAGENTA}Factory Droid${RESET}" ;;
-    *) engine_display="${MAGENTA}Claude Code${RESET}" ;;
-  esac
-  echo "Engine: $engine_display"
-  echo "Source: ${CYAN}$PRD_SOURCE${RESET} (${PRD_FILE:-$GITHUB_REPO})"
-  if [[ -d "$RALPHY_DIR" ]]; then
-    echo "Config: ${GREEN}$RALPHY_DIR/${RESET} (rules loaded)"
+  # Show banner (skip for stream-json mode)
+  if [[ "$OUTPUT_FORMAT" != "stream-json" ]]; then
+    echo "${BOLD}============================================${RESET}"
+    echo "${BOLD}Ralphy${RESET} - Running until PRD is complete"
+    local engine_display
+    case "$AI_ENGINE" in
+      opencode) engine_display="${CYAN}OpenCode${RESET}" ;;
+      cursor) engine_display="${YELLOW}Cursor Agent${RESET}" ;;
+      codex) engine_display="${BLUE}Codex${RESET}" ;;
+      qwen) engine_display="${GREEN}Qwen-Code${RESET}" ;;
+      droid) engine_display="${MAGENTA}Factory Droid${RESET}" ;;
+      *) engine_display="${MAGENTA}Claude Code${RESET}" ;;
+    esac
+    echo "Engine: $engine_display"
+    echo "Source: ${CYAN}$PRD_SOURCE${RESET} (${PRD_FILE:-$GITHUB_REPO})"
+    if [[ -d "$RALPHY_DIR" ]]; then
+      echo "Config: ${GREEN}$RALPHY_DIR/${RESET} (rules loaded)"
+    fi
+  else
+    # Emit init event for stream-json mode
+    emit_json_event "init" "Ralphy starting with $AI_ENGINE engine"
   fi
 
   local mode_parts=()
@@ -3014,10 +3124,12 @@ main() {
   [[ "$CREATE_PR" == true ]] && mode_parts+=("create-pr")
   [[ $MAX_ITERATIONS -gt 0 ]] && mode_parts+=("max:$MAX_ITERATIONS")
 
-  if [[ ${#mode_parts[@]} -gt 0 ]]; then
-    echo "Mode: ${YELLOW}${mode_parts[*]}${RESET}"
+  if [[ "$OUTPUT_FORMAT" != "stream-json" ]]; then
+    if [[ ${#mode_parts[@]} -gt 0 ]]; then
+      echo "Mode: ${YELLOW}${mode_parts[*]}${RESET}"
+    fi
+    echo "${BOLD}============================================${RESET}"
   fi
-  echo "${BOLD}============================================${RESET}"
 
   # Run in parallel or sequential mode
   if [[ "$PARALLEL" == true ]]; then
