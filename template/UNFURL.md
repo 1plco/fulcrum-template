@@ -127,6 +127,47 @@ def {name}(data: {input_model}) -> {output_model}:
 
 **IMPORTANT**: Do NOT write stubs or `raise NotImplementedError()`. Write the complete, working implementation.
 
+### Composable Design for Failure Recovery (Required)
+
+Functions MUST be written in a composable, recoverable fashion so the ticketing agent can resume from any failure point:
+
+**Requirements:**
+- **Idempotent operations**: Functions should be safe to re-run without side effects (use upserts, check-before-create patterns)
+- **Granular checkpoints**: Break complex workflows into discrete, resumable steps that can be tracked
+- **State persistence**: Store intermediate results in `/tmp` folder so the ticketing agent can recover from failures
+- **Clear error boundaries**: Each function should handle one logical unit of work with well-defined inputs/outputs
+- **No hidden state**: Avoid in-memory state that would be lost on restart; persist to `/tmp` instead
+
+**Pattern Example:**
+```python
+from pathlib import Path
+import json
+
+TMP_DIR = Path("/tmp")
+
+def process_batch(data: BatchInput) -> BatchOutput:
+    checkpoint_file = TMP_DIR / f"batch_{data.batch_id}_progress.json"
+
+    # Check for existing progress
+    completed = set()
+    if checkpoint_file.exists():
+        completed = set(json.loads(checkpoint_file.read_text()))
+
+    results = []
+    for item in data.items:
+        if item.id in completed:
+            continue  # Skip already-processed items
+
+        result = process_single_item(item)
+        results.append(result)
+
+        # Save checkpoint
+        completed.add(item.id)
+        checkpoint_file.write_text(json.dumps(list(completed)))
+
+    return compile_results(results)
+```
+
 ### File I/O Convention
 
 When functions need to read or write files:
@@ -272,4 +313,5 @@ Before implementing, check available resources:
 - [ ] Make sure key information is dispatched back to user using skills/fulcrum-sdk
 - [ ] Make sure functions are well integrated to internal-db
 - [ ] Real data verification passes (no fake data patterns found); use skills/browser-use for information that exist online
+- [ ] Functions are composable and recoverable (idempotent, checkpointed, no hidden state)
 - [ ] README.md documents all functions with SOP mappings
