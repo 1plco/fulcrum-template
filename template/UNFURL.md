@@ -271,3 +271,4 @@ Before implementing, check available resources:
 - [ ] Migrations APPLIED (not just created)
 - [ ] Real data verification passes (no fake data patterns found)
 - [ ] README.md documents all functions with SOP mappings
+- [ ] Make sure key information is dispatched back to user using skills/fulcrum-sdk
