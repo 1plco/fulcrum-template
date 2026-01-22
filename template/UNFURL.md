@@ -1,49 +1,49 @@
 # Unfurl Instructions
 
-Generate Python code from `manifest.json`.
+Generate Python code from `sop.md`.
 
-## Manifest Schema
+## Planning Loop (max 10 iterations)
 
-```json
-{
-  "title": "string",
-  "data_models": [
-    {
-      "name": "ModelName",
-      "description": "What this model represents",
-      "fields": [
-        {"name": "field_name", "type": "str", "description": "...", "optional": false}
-      ]
-    }
-  ],
-  "functions": [
-    {
-      "name": "function_name",
-      "description": "What this function does",
-      "citation": {"start": 0, "end": 100, "text": "exact text from SOP"},
-      "input_model": "InputModelName",
-      "output_model": "OutputModelName"
-    }
-  ]
-}
+1. **Hypothesis** - Read sop.md, propose example request that triggers SOP flow
+2. **Explore** - Read all /skills, /resources, /models, /functions, /migrations
+3. **Plan** - Plan implementation of library to execute sop.md, including migrations
+4. **Critique** - Think of a request that would NOT work; if found, loop back with that request
+
+## Execution Loop (until all validation passes)
+
+1. **Write** - Generate /models, /functions, /migrations, /tests
+2. **Validate** - Run ruff format, ruff check --fix, ty check, pytest
+3. **Verify Real Data** - Scan code for fake/placeholder data (see below)
+4. **Refine** - Fix any issues and repeat
+
+## Real Data Verification (CRITICAL)
+
+After writing code, verify NO fake data exists:
+
+### Prohibited Patterns (scan for these):
+- Hardcoded names: "John Doe", "Jane Smith", "Acme Corp", "Test User"
+- Fake addresses: "123 Main St", "456 Oak Ave", "1234567890"
+- Fake emails: "test@example.com", "user@test.com", "foo@bar.com"
+- Placeholder patterns: "TODO", "FIXME", "XXX", "placeholder", "sample", "dummy"
+- Hardcoded return values that should come from real sources
+
+### Required Data Sources:
+Every function that processes data MUST obtain it from:
+- `input/` directory (files to process)
+- `resources/` directory (reference data, templates)
+- Skills (browser-use, sql, internal-db, phonic, mapbox, claude)
+- Environment variables (API keys for external services)
+
+### Verification Command:
+```bash
+# Check for fake data patterns in functions
+grep -rE "John Doe|Jane Smith|123 Main|test@example|placeholder|TODO|FIXME" functions/ models/
+# Should return empty - any matches require fixing
 ```
 
-## Step 1: Cleanup Stale Files
+## Generate Models
 
-Before generating code, validate existing files against `manifest.json`:
-
-1. Check `models/` - delete any model files not in `data_models`
-2. Check `functions/` - delete any function files not in `functions`
-3. Check `tests/` - delete any test files for functions no longer in manifest
-
-Keep `__init__.py` files. Update exports in `__init__.py` to remove deleted items.
-
-4. Check `functions/` logic and see if they still match `sop.md`
-5. Check persistence requirements again and see if any database migrations are needed. And then see which functions need updates to use the internal-db.
-
-## Step 2: Generate Models
-
-For each `data_models` entry, create `models/{snake_case(name)}.py`:
+For each data model needed, create `models/{snake_case(name)}.py`:
 
 ```python
 from pydantic import BaseModel, Field
@@ -56,11 +56,11 @@ class {name}(BaseModel):
 
 Add export to `models/__init__.py`.
 
-## Step 2.5: Create and Apply Database Migrations (Before Functions)
+## Create and Apply Database Migrations (Before Functions)
 
 **If functions need persistent storage, create AND APPLY migrations FIRST.**
 
-This step is MANDATORY before Step 3 when:
+This step is MANDATORY when:
 - Functions need to persist state across executions
 - Functions need to cache expensive computations
 - The SOP mentions storing, caching, or remembering data
@@ -72,41 +72,22 @@ This step is MANDATORY before Step 3 when:
 3. Create migration file in `migrations/` with `CREATE TABLE IF NOT EXISTS` statements
 4. **APPLY the migration immediately** by running the migration script
 
-**CRITICAL**: Do NOT just create migration files - you MUST execute them. The internal database must be fully operational after unfurl completes. Run the migration script to apply all schema changes before proceeding to Step 3.
+**CRITICAL**: Do NOT just create migration files - you MUST execute them. The internal database must be fully operational after unfurl completes.
 
 ```bash
 # Apply migrations
 uv run python migrations/001_initial.py
 ```
 
-Or apply directly in Python:
-```python
-import os
-import duckdb
-
-token = os.environ["FULCRUM_INTERNAL_DB_RW"]
-db_name = os.environ["FULCRUM_INTERNAL_DB_NAME"]
-conn = duckdb.connect(f"md:{db_name}?motherduck_token={token}")
-
-# Execute CREATE TABLE statements
-conn.execute("""
-    CREATE TABLE IF NOT EXISTS your_table (
-        id INTEGER PRIMARY KEY,
-        ...
-    )
-""")
-conn.close()
-```
-
 See `skills/internal-db/SKILL.md` for migration patterns.
 
-## Step 3: Generate Functions
+## Generate Functions
 
 **Before implementing**: Check if any skills in `skills/` can help. Read skill descriptions in SKILL.md frontmatter to find relevant capabilities.
 
 **Before writing code that interacts with external data:**
 1. **Database schemas** - If querying databases, read `resources/RESOURCES.md` to verify table structures, column names, and data types
-2. **Template files** - If reading/writing template files (Excel templates, Word documents, etc.) in `resources/` or `input/`, examine their actual format and structure first to ensure compatibility
+2. **Template files** - If reading/writing template files in `resources/` or `input/`, examine their actual format first
 
 **MANDATORY: Use Real Data Only**
 
@@ -118,14 +99,14 @@ Check `env.md` for available API keys, then use skills to fetch real data:
 
 **PROHIBITED:** Hardcoded sample values, fabricated data, simulated API responses.
 
-For each `functions` entry, create `functions/{name}.py` with a **complete working implementation**:
+For each function, create `functions/{name}.py` with a **complete working implementation**:
 
 ```python
 """
 {description}
 
 SOP Reference:
-> {citation.text}
+> {quoted text from sop.md that this function implements}
 """
 from models import {input_model}, {output_model}
 
@@ -140,14 +121,11 @@ def {name}(data: {input_model}) -> {output_model}:
     Returns:
         {output_model}
     """
-    # IMPLEMENT THE FULL LOGIC HERE based on:
-    # 1. The function description
-    # 2. The SOP citation text
-    # 3. The input/output model fields
+    # IMPLEMENT THE FULL LOGIC HERE
     ...
 ```
 
-**IMPORTANT**: Do NOT write stubs or `raise NotImplementedError()`. Write the complete, working implementation that fulfills the SOP requirement described in the citation.
+**IMPORTANT**: Do NOT write stubs or `raise NotImplementedError()`. Write the complete, working implementation.
 
 ### File I/O Convention
 
@@ -173,7 +151,7 @@ When implementing functions, use skills from `skills/` as reference documentatio
 2. Find code patterns matching your function's requirements
 3. Adapt examples to work with your input/output models
 
-For complex skills with decision trees or multiple approaches, use extended thinking (ultrathink) to plan: What does the skill provide? How does it map to my models? What's the implementation sequence?
+For complex skills with decision trees or multiple approaches, use extended thinking (ultrathink) to plan.
 
 Add export to `functions/__init__.py`.
 
@@ -203,7 +181,7 @@ dispatch = get_dispatch_client()
 
 See `skills/fulcrum-sdk/SKILL.md` for complete API reference.
 
-## Step 4: Generate Tests
+## Generate Tests
 
 For each function, create `tests/test_{name}.py` with **real test cases**:
 
@@ -225,11 +203,11 @@ def test_{name}_edge_cases():
     ...
 ```
 
-**IMPORTANT**: Write real assertions that verify the function implements the SOP correctly. Use concrete test values, not placeholders.
+**IMPORTANT**: Write real assertions that verify the function implements the SOP correctly.
 
 **IMPORTANT**: Tests MUST mock dispatch and all external side effects (API calls, DB writes, phone calls, browser tasks). Do not emit real dispatches or call external services in tests.
 
-## Step 5: Validate (Recursive)
+## Validate (Recursive)
 
 Run validation commands and fix any issues until ALL checks pass:
 
@@ -254,6 +232,21 @@ Do NOT proceed or consider the unfurl complete until:
 
 This is a blocking requirement. Keep iterating until success.
 
+## README.md Requirements (for ticket agent discovery)
+
+Generate/update README.md with:
+
+### Available Functions
+| Function | Purpose | SOP Section |
+|----------|---------|-------------|
+| function_name | Brief description | "Quoted text from sop.md" |
+
+### Data Models
+List all models with their fields and purposes.
+
+### Database Tables
+List any internal-db tables created by migrations.
+
 ## Resources Integration
 
 Before implementing, check available resources:
@@ -265,7 +258,7 @@ Before implementing, check available resources:
 
 - **File resources**: Read from `resources/{resource-name}/` directories
 - **SQL databases**: Use connection string from env vars; see `skills/sql/SKILL.md`
-- **Internal DB**: Use `FULCRUM_INTERNAL_DB_RW` env var; see `skills/internal-db/SKILL.md` for migration patterns and dry-run testing
+- **Internal DB**: Use `FULCRUM_INTERNAL_DB_RW` env var; see `skills/internal-db/SKILL.md`
 
 **Note:** Check `resources/INTERNAL_DB.md` before creating tables. Server auto-generates schema docs after unfurl.
 
@@ -273,9 +266,8 @@ Before implementing, check available resources:
 
 **The unfurl is NOT complete until ALL of these conditions are met:**
 
-1. ✅ All validation commands pass (ruff format, ruff check, ty check, pytest)
-2. ✅ All functions are fully implemented (no stubs, no `NotImplementedError`)
-3. ✅ **Internal database is operational** - migrations have been APPLIED, not just created
-4. ✅ All tests pass with mocked external services
-
-**Internal Database Requirement**: If any function uses the internal database, verify the tables exist by running a test query after applying migrations. The database must be in a working state - ticket execution will fail if functions try to query non-existent tables.
+- [ ] All validation commands pass (ruff format, ruff check, ty check, pytest)
+- [ ] All functions fully implemented (no stubs, no NotImplementedError)
+- [ ] Migrations APPLIED (not just created)
+- [ ] Real data verification passes (no fake data patterns found)
+- [ ] README.md documents all functions with SOP mappings

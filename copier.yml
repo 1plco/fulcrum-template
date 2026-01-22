@@ -28,7 +28,6 @@ python_version:
 
 _skip_if_exists:
   - "sop.md"
-  - "manifest.json"
   - "env.md"
   - "functions/*.py"
   - "models/*.py"

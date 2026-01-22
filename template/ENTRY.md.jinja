@@ -6,10 +6,10 @@
 
 ### Phase 1: Discovery (REQUIRED FIRST)
 1. **Read `sop.md`** - Understand the full process and requirements
-2. **Cross-reference `manifest.json`** - Each function in the manifest has a `citation` field that references specific sections of `sop.md`. Use this to find which functions in `/functions` implement each SOP section.
+2. **Read `README.md`** - Check "Available Functions" section for existing implementations
 3. **Read `env.md`** - Check all available API keys and environment variables
-4. **Read relevant skills completely** - Look up ALL skills that may apply in `/skills`, read full SKILL.md (not just descriptions)
-5. **Find existing functions** - Use `manifest.json` citations to locate implementations in `/functions/{function_name}.py` that handle each SOP requirement
+4. **Read relevant skills completely** - Look up ALL skills in `/skills`, read full SKILL.md
+5. **Find existing functions** - Read `functions/__init__.py` for exports, then read function docstrings for "SOP Reference:" to find implementations
 6. **Verify data schemas** - Read `resources/RESOURCES.md` and `resources/INTERNAL_DB.md`
 
 ### Phase 2: Database Verification (REQUIRED BEFORE CODE)
@@ -30,7 +30,7 @@
 ```
 {{ project_slug }}/
 ├── sop.md          # Source SOP (markdown)
-├── manifest.json   # Function specifications
+├── README.md       # Function documentation (auto-generated)
 ├── env.md          # External services docs
 ├── UNFURL.md       # Code generation instructions
 ├── ENTRY.md        # This file
@@ -38,13 +38,15 @@
 ├── input/          # Input files for processing
 ├── output/         # Generated output files
 │
-├── resources/      # Project resources (data files, database schemas)
-│   └── RESOURCES.md  # Resource manifest (auto-generated)
+├── resources/          # Project resources (data files, database schemas)
+│   └── RESOURCES.md    # Resource manifest (auto-generated)
+│   └── INTERNAL_DB.md  # Internal DB schema and tables (auto-generated)
 │
 ├── skills/         # Specialized capabilities (see Skills section)
 ├── models/         # Pydantic data models
 ├── functions/      # Function implementations
 └── tests/          # Pytest tests
+└── migrations/     # Internal-DB migration files
 ```
 
 ## Resources
@@ -173,26 +175,26 @@ When implementing functionality, prefer reusing existing code over writing new c
 
 This hierarchy ensures consistency, reduces errors, and leverages tested code.
 
-### Finding Functions via Manifest
+### Finding Functions via Code Exploration
 
-Use `manifest.json` to map SOP sections to existing function implementations:
+Discover existing function implementations through:
 
-```json
-{
-  "functions": [
-    {
-      "name": "validate_invoice",
-      "citation": {"start": 150, "end": 280, "text": "exact text from SOP"},
-      ...
-    }
-  ]
-}
+1. **README.md "Available Functions" table** - Primary source mapping functions to SOP sections
+2. **functions/__init__.py** - Lists all exported functions
+3. **Function docstrings** - Each function has "SOP Reference:" with cited SOP text
+
+Example docstring pattern:
+```python
+def validate_invoice(data: InvoiceInput) -> ValidationResult:
+    """
+    Validate invoice against business rules.
+
+    SOP Reference:
+    > Check that the invoice total matches line items...
+    """
 ```
 
-- Each function's `citation.text` shows which SOP section it implements
-- The function implementation lives at `/functions/{name}.py`
-- Cross-reference the citation text with `sop.md` to understand what each function handles
-- When a task references an SOP section, find the matching citation to locate the relevant function
+When a task references an SOP section, search function docstrings for matching "SOP Reference" text.
 
 ### Real Data Requirements
 

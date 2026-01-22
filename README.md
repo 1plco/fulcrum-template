@@ -6,10 +6,10 @@ Part of the Fulcrum system for turning SOPs into agentic workflows.
 
 ## Overview
 
-Fulcrum Template creates structured Python projects that follow a manifest-driven development pattern:
+Fulcrum Template creates structured Python projects that follow an SOP-first development pattern:
 
 ```
-SOP Document → manifest.json → Generated Code (Models, Functions, Tests)
+SOP Document → Unfurl Loop → Generated Code (Models, Functions, Tests)
 ```
 
 ## Requirements
@@ -50,14 +50,14 @@ cd projects/my-workflow
 copier update
 ```
 
-User files (`sop.md`, `manifest.json`, `env.md`, `skills/`, `functions/*.py`, `models/*.py`, `tests/test_*.py`) are preserved during updates.
+User files (`sop.md`, `env.md`, `skills/`, `functions/*.py`, `models/*.py`, `tests/test_*.py`) are preserved during updates.
 
 ## Generated Project Structure
 
 ```
 my_workflow/
 ├── sop.md              # Source SOP document
-├── manifest.json       # Function & model specifications
+├── README.md           # Function documentation (auto-generated during unfurl)
 ├── env.md              # External services documentation
 ├── UNFURL.md           # Code generation instructions
 ├── ENTRY.md            # Project layout reference
@@ -70,15 +70,15 @@ my_workflow/
 
 ## Workflow
 
-1. **Document** — Write your SOP in `sop.md`
-2. **Specify** — Define models and functions in `manifest.json`
-3. **Generate** — Follow `UNFURL.md` to generate code from the manifest
-4. **Validate** — Run tests and linting
+1. **Document** - Write your SOP in `sop.md`
+2. **Unfurl** - Run the unfurl loop to generate code from the SOP
+3. **Validate** - Run tests and linting
+4. **Execute** - Run tickets against the generated implementation
 
 ## Stack
 
-- **Pydantic 2.0** — Data validation
-- **Pytest** — Testing with async support
-- **Ruff** — Linting and formatting
-- **ty** — Type checking
-- **uv** — Package management
+- **Pydantic 2.0** - Data validation
+- **Pytest** - Testing with async support
+- **Ruff** - Linting and formatting
+- **ty** - Type checking
+- **uv** - Package management
