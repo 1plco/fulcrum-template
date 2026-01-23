@@ -2,6 +2,12 @@
 
 Generate Python code from `sop.md`.
 
+## Environment Onboarding
+- Python environment via `uv`
+- Access to external services via /skills with environment variables listed under `env.md`
+- Access to internal database via duckdb (detailed in /skills/internal-db)
+- Access to internal resources (secrets, files, SQL) via /resources
+
 ## Planning Loop (max 10 iterations)
 
 1. **Hypothesis** - Read sop.md, propose example request that triggers SOP flow
