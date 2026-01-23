@@ -1,5 +1,6 @@
 ## Kick Start
 - [ ] Read UNFURL.md and sop.md; understand requirement and decompose them into Task List section; NOTE: NEVER attempt to do all of the task at once. Find reasonable chunks to work on at any given time. 
+- [ ] If we don't have any code yet but internal-db has tables; and the tables seem to be either empty or have test/sample data, please clean up (these are remenants of past unfurls that might've failed)
 
 ## Task List
 
