@@ -34,13 +34,6 @@ Every function that processes data MUST obtain it from:
 - Skills (browser-use, sql, internal-db, phonic, mapbox, claude)
 - Environment variables (API keys for external services)
 
-### Verification Command:
-```bash
-# Check for fake data patterns in functions
-grep -rE "John Doe|Jane Smith|123 Main|test@example|placeholder|TODO|FIXME" functions/ models/
-# Should return empty - any matches require fixing
-```
-
 ## Generate Models
 
 For each data model needed, create `models/{snake_case(name)}.py`:
@@ -247,6 +240,8 @@ def test_{name}_edge_cases():
 **IMPORTANT**: Write real assertions that verify the function implements the SOP correctly.
 
 **IMPORTANT**: Tests MUST mock dispatch and all external side effects (API calls, DB writes, phone calls, browser tasks). Do not emit real dispatches or call external services in tests.
+
+**IMPORTANT**: Tests MUST not write to internal-db; if database tests are needed; stage transactions without committing (dry run) and check output
 
 ## Validate (Recursive)
 
