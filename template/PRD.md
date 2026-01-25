@@ -9,7 +9,7 @@
 
 - [ ] All functions fully implemented (no stubs, no NotImplementedError)
 - [ ] Migrations APPLIED (not just created)
-- [ ] Make sure key information is dispatched back to user using skills/fulcrum-sdk
+- [ ] Make sure key information is dispatched back to user using skills/fulcrum-sdk; make sure only key results and summaries are dispatched and will not result in thousands of messages.
 - [ ] Make sure functions are well integrated to internal-db
 - [ ] Real data verification passes (no fake data patterns found); use browser-use for information that exist online
 - [ ] Functions are composable and recoverable (idempotent, checkpointed, no hidden state)
