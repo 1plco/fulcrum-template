@@ -622,7 +622,7 @@ $task
   # Add commit instruction only if auto-commit is enabled
   if [[ "$AUTO_COMMIT" == "true" ]]; then
     prompt+="
-4. Commit your changes with a descriptive message"
+4. Commit your changes with a descriptive message. Do NOT include Co-Authored-By in commit messages."
   fi
 
   prompt+="
@@ -1651,7 +1651,7 @@ $step. The task will be marked complete automatically. Just note the completion 
 
   prompt="$prompt
 $step. Append your progress to $PROGRESS_FILE.
-$((step+1)). Commit your changes with a descriptive message.
+$((step+1)). Commit your changes with a descriptive message. Do NOT include Co-Authored-By in commit messages.
 ONLY WORK ON A SINGLE TASK."
 
   if [[ "$SKIP_TESTS" == false ]]; then
