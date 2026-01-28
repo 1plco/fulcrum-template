@@ -1,125 +1,97 @@
 ---
 name: fulcrum-sdk
-description: "Dispatch milestones to user-facing timeline. Use when completing significant steps: starting major phases, calling external APIs, creating external references, completing database operations, or validating Pydantic models. Never dispatch every tool call or internal logs. Environment variables FULCRUM_DISPATCH_URL, FULCRUM_DISPATCH_TOKEN, FULCRUM_TICKET_UUID, and FULCRUM_RUN_UUID must be set (injected by system)."
+description: "Dispatch milestones to user-facing timeline and track improvement suggestions. Use dispatch for significant steps (API calls, external refs, DB operations). Use improvements to suggest SOP enhancements, bug fixes, or optimizations. Environment variables FULCRUM_RUN_TOKEN, FULCRUM_DISPATCH_URL, FULCRUM_IMPROVEMENTS_URL, FULCRUM_TICKET_UUID, and FULCRUM_RUN_UUID must be set (injected by system)."
 license: "© 2025 Daisyloop Technologies Inc. See LICENSE.txt"
 ---
 
-# Fulcrum SDK - Dispatch System
+# Fulcrum SDK
 
 ## Overview
 
-The dispatch system provides a user-facing timeline of agent progress. Dispatches appear as milestones in the ticket UI, helping users understand what the agent is doing and track progress on their request.
+The Fulcrum SDK provides two systems for agent-to-platform communication:
 
-**Key principle**: Dispatch **milestones**, not tool traces. Users care about meaningful progress, not internal implementation details.
+1. **Dispatch** - Send milestones to the user-facing timeline (what users see)
+2. **Improvements** - Track suggestions for SOP/workflow enhancements (what developers review)
+
+Both systems are best-effort: methods return `False` on error and never raise exceptions.
 
 ## Quick Start
 
-```python
-from fulcrum_sdk._internal.dispatch import get_dispatch_client
-
-dispatch = get_dispatch_client()  # Configured from FULCRUM_* env vars
-
-# Simple text milestone
-dispatch.dispatch_text("Starting invoice processing")
-
-# API call with service context
-dispatch.dispatch_api_call(
-    "Called Phonic to confirm appointment",
-    service="phonic",
-    operation="outbound_call",
-    phone="+1234567890"
-)
-```
-
-Or use the validation script:
-
-```bash
-uv run skills/fulcrum-sdk/scripts/dispatch.py
-```
-
-## When to Dispatch
-
-### DO Dispatch
-
-| Situation | Example |
-|-----------|---------|
-| Starting a major phase | `dispatch_text("Starting data extraction")` |
-| Calling external APIs | `dispatch_api_call("Geocoding address", service="mapbox", ...)` |
-| Creating external references | `dispatch_external_ref("Browser task created", provider="browser-use", ...)` |
-| Database operations (with counts) | `dispatch_db("Inserted invoices", operation="insert", table="invoices", rows=15)` |
-| Pydantic model display | `dispatch_model("Validated invoice data", model=invoice)` |
-
-### DO NOT Dispatch
-
-| Situation | Why |
-|-----------|-----|
-| Every tool call | Users don't need internal trace |
-| Internal logs | Use stdout/stderr instead |
-| Large payloads | Keep summaries concise |
-| Secrets/credentials | Never dispatch sensitive data |
-| Debug output | Belongs in stdout events |
-
-## Kind Selection Guide
-
-Choose the dispatch kind based on what's most valuable to the user:
-
-| Kind | Use When | Example |
-|------|----------|---------|
-| `text` | General milestones, phase transitions | "Processing complete" |
-| `api_call` | External API interaction is the key event | "Called Claude for extraction" |
-| `external_ref` | Creating a reference for later display | Browser task, generated file |
-| `db` | Database operation (include counts, not rows) | "Inserted 15 records" |
-| `model` | Pydantic model display (shows field values) | "Validated Invoice model" |
-
-## API Reference
-
-### Getting the Client
+### Dispatch (Timeline Milestones)
 
 ```python
 from fulcrum_sdk._internal.dispatch import get_dispatch_client
 
 dispatch = get_dispatch_client()
 
-# Check if dispatch is enabled
-if dispatch.enabled:
-    dispatch.dispatch_text("Ready to process")
-```
-
-### dispatch_text(summary, text=None)
-
-General text milestone. Simplest dispatch kind.
-
-```python
+# Text milestone
 dispatch.dispatch_text("Starting invoice processing")
-dispatch.dispatch_text("Extracted 12 line items", text="Items included office supplies, software licenses")
+
+# API call with context
+dispatch.dispatch_api_call(
+    "Called Phonic to confirm appointment",
+    service="phonic",
+    operation="outbound_call"
+)
 ```
 
-### dispatch_api_call(summary, service, operation, **details)
-
-External API call. Include service name and operation.
+### Improvements (SOP Suggestions)
 
 ```python
-dispatch.dispatch_api_call(
-    "Geocoding delivery address",
-    service="mapbox",
-    operation="geocode",
-    address="123 Main St"
-)
+from fulcrum_sdk._internal.improvements import get_improvements_client
 
+improvements = get_improvements_client()
+
+# Suggest an enhancement
+improvements.create_improvement(
+    title="Add retry logic for transient API failures",
+    dedupe_key="retry-logic"  # Prevents duplicates
+)
+```
+
+---
+
+## Dispatch System
+
+User-facing timeline milestones. Dispatch **significant events**, not tool traces.
+
+### When to Dispatch
+
+| DO Dispatch | Example |
+|-------------|---------|
+| Starting major phases | `dispatch_text("Starting data extraction")` |
+| External API calls | `dispatch_api_call("Geocoding address", service="mapbox", ...)` |
+| External references | `dispatch_external_ref("Browser task created", provider="browser-use", ...)` |
+| Database operations | `dispatch_db("Inserted invoices", operation="insert", table="invoices", rows=15)` |
+
+| DO NOT Dispatch | Why |
+|-----------------|-----|
+| Every tool call | Users don't need internal traces |
+| Debug logs | Use stdout/stderr instead |
+| Secrets | Never dispatch credentials |
+
+### Dispatch Methods
+
+| Method | Use When |
+|--------|----------|
+| `dispatch_text(summary, text?)` | General milestones, phase transitions |
+| `dispatch_api_call(summary, service, operation, **details)` | External API calls |
+| `dispatch_external_ref(summary, provider, ref_type, ref_id, url?)` | References for later display |
+| `dispatch_db(summary, operation, table, rows?, query?)` | Database operations |
+| `dispatch_model(summary, model, input_summary?)` | Pydantic model display |
+
+### Dispatch Examples
+
+```python
+# API call
 dispatch.dispatch_api_call(
     "Generated summary with Claude",
     service="anthropic",
     operation="messages.create",
     model="claude-sonnet-4-5-20250929"
 )
-```
 
-### dispatch_external_ref(summary, provider, ref_type, ref_id, url=None)
-
-External reference for later retrieval/display.
-
-```python
-# Browser Use task
+# External reference
 dispatch.dispatch_external_ref(
     "Browser task created",
     provider="browser-use",
@@ -127,151 +99,124 @@ dispatch.dispatch_external_ref(
     ref_id=task.id
 )
 
-# Phonic conversation
-dispatch.dispatch_external_ref(
-    "Outbound call started",
-    provider="phonic",
-    ref_type="conversation",
-    ref_id=result.conversation_id
-)
-
-# Note: dispatch_external_ref is ONLY for external services with hosted IDs
-# (e.g., browser-use tasks, phonic conversations). Do NOT use it for local
-# files in /output/ - those are automatically collected and uploaded after
-# execution. Users access them through the ticket files panel.
-```
-
-### dispatch_db(summary, operation, table, rows=None, query=None)
-
-Database operation. Include counts, not raw data.
-
-```python
+# Database operation
 dispatch.dispatch_db(
     "Inserted invoice records",
     operation="insert",
     table="invoices",
     rows=15
 )
-
-dispatch.dispatch_db(
-    "Updated order status",
-    operation="update",
-    table="orders",
-    rows=1,
-    query="UPDATE orders SET status = 'complete' WHERE id = ?"
-)
 ```
 
-### dispatch_model(summary, model, input_summary=None)
+---
 
-Display Pydantic model data as an intermediate step. The model's field values are automatically serialized and shown in the timeline.
+## Improvements System
+
+Track suggestions for SOP and workflow improvements discovered during execution.
+
+### When to Create Improvements
+
+| Situation | Example |
+|-----------|---------|
+| Logic enhancement | `"Add retry logic for transient API failures"` |
+| Checkpointing | `"Add checkpointing to resume long-running extractions"` |
+| SOP edge case | `"SOP should handle empty input files gracefully"` |
+| Parallelism | `"Steps 3-5 are independent and could run in parallel"` |
+| New capability | `"Add email notification when processing completes"` |
+| Bug to fix | `"Date parser fails on ISO formats with timezone offset"` |
+
+### Improvements Methods
+
+| Method | Returns | Description |
+|--------|---------|-------------|
+| `list_improvements(project_uuid?)` | `list[Improvement]` | List improvements for run |
+| `create_improvement(title, description?, dedupe_key?, status?)` | `bool` | Create improvement |
+| `update_improvement(uuid, **fields)` | `bool` | Update title/description/status |
+| `delete_improvement(uuid)` | `bool` | Delete improvement |
+| `emit_improvement_event(uuid, action, payload?)` | `bool` | Record action on improvement |
+
+### Improvements Examples
 
 ```python
-from models.invoice import Invoice
+from fulcrum_sdk._internal.improvements import get_improvements_client
 
-invoice = Invoice(**data)
-dispatch.dispatch_model(
-    "Validated invoice data",
-    model=invoice,
-    input_summary="12 line items, total $1,234.56"
+improvements = get_improvements_client()
+
+# Create with deduplication
+improvements.create_improvement(
+    title="Add retry logic for API failures",
+    description="Transient network errors cause job failures",
+    dedupe_key="retry-logic"
 )
-# Timeline will show: model: Invoice, temperature: 10, unit: celsius, etc.
+
+# Update status
+improvements.update_improvement(
+    uuid="improvement-uuid",
+    status="resolved"
+)
+
+# Emit event
+improvements.emit_improvement_event(
+    improvement_uuid="improvement-uuid",
+    action="resolved",
+    payload={"resolution": "Added exponential backoff"}
+)
 ```
+
+---
 
 ## Best Practices
 
 ### Write Good Summaries
 
-Summaries should be:
 - **Present tense**: "Processing invoices" not "Processed invoices"
 - **User-focused**: What matters to them, not implementation details
-- **Concise**: Single line, max 512 characters
 - **Specific**: "Extracted 12 line items" not "Extracted data"
 
-### Include Relevant Context
+### Use Deduplication
+
+Always provide `dedupe_key` for improvements to prevent duplicates across runs:
 
 ```python
-# Good - includes context
-dispatch.dispatch_api_call(
-    "Confirming appointment for John Smith",
-    service="phonic",
-    operation="outbound_call",
-    phone="+1234567890"
-)
-
-# Bad - missing context
-dispatch.dispatch_api_call(
-    "Made phone call",
-    service="phonic",
-    operation="outbound_call"
+improvements.create_improvement(
+    title="Handle rate limits gracefully",
+    dedupe_key="rate-limit-handling"  # Same key = no duplicate
 )
 ```
 
-### Handle Optional Dispatch
+### Handle Failures Gracefully
 
-The client returns `False` on any error and never raises exceptions:
-
-```python
-# Dispatch failures don't affect execution
-result = dispatch.dispatch_text("Starting processing")
-# result is False if dispatch failed, but code continues
-
-# Or check explicitly
-if not dispatch.dispatch_text("Starting"):
-    print("Dispatch failed (non-critical)")
-```
-
-## Anti-Patterns
-
-### Don't Dispatch Tool Traces
+Both clients return `False` on any error without raising exceptions:
 
 ```python
-# BAD - Too granular
-dispatch.dispatch_text("Reading file config.json")
-dispatch.dispatch_text("Parsing JSON content")
-dispatch.dispatch_text("Validating schema")
-dispatch.dispatch_text("Writing to output.json")
-
-# GOOD - Meaningful milestone
-dispatch.dispatch_text("Configuration processed successfully")
+# Failures don't affect execution
+result = dispatch.dispatch_text("Starting")
+# result is False if failed, but code continues
 ```
 
-### Don't Dispatch Large Payloads
-
-```python
-# BAD - Raw data in dispatch
-dispatch.dispatch_json("Extracted data", {"rows": [...100 rows...]})
-
-# GOOD - Summary only
-dispatch.dispatch_db("Extracted invoice data", operation="select", table="invoices", rows=100)
-```
-
-### Don't Dispatch Sensitive Data
-
-```python
-# BAD - Contains API key
-dispatch.dispatch_api_call("Calling API", service="mapbox", api_key="sk-...")
-
-# GOOD - Key is automatically redacted, but don't include it
-dispatch.dispatch_api_call("Geocoding address", service="mapbox", operation="geocode")
-```
+---
 
 ## Scripts
 
-### scripts/dispatch.py
-
-Validation script that emits test dispatches:
+Validation scripts for testing environment setup:
 
 ```bash
-# Run with mock environment
-export FULCRUM_DISPATCH_URL="http://localhost:8000/dispatch"
-export FULCRUM_DISPATCH_TOKEN="test-token"
-export FULCRUM_TICKET_UUID="test-ticket-uuid"
-export FULCRUM_RUN_UUID="test-run-uuid"
-
+# Test dispatch
 uv run skills/fulcrum-sdk/scripts/dispatch.py
+
+# Test improvements
+uv run skills/fulcrum-sdk/scripts/improvements.py
 ```
+
+---
+
+## Token Deprecation
+
+`FULCRUM_DISPATCH_TOKEN` is deprecated. Use `FULCRUM_RUN_TOKEN` instead. Both clients accept either token, preferring `FULCRUM_RUN_TOKEN` when both are set.
+
+---
 
 ## References
 
-For the complete dispatch contract specification, see [references/dispatch-contract.md](references/dispatch-contract.md).
+- [Dispatch Contract](references/dispatch-contract.md) - Complete dispatch API specification
+- [Improvements Contract](references/improvements-contract.md) - Complete improvements API specification

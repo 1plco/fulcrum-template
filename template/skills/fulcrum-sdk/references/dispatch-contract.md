@@ -28,9 +28,12 @@ The dispatch system sends structured events from agent execution to the Fulcrum 
 | Variable | Description |
 |----------|-------------|
 | `FULCRUM_DISPATCH_URL` | The dispatch API endpoint URL |
-| `FULCRUM_DISPATCH_TOKEN` | Authentication token for the API |
+| `FULCRUM_RUN_TOKEN` | Authentication token for the API (preferred) |
+| `FULCRUM_DISPATCH_TOKEN` | Deprecated authentication token (fallback) |
 | `FULCRUM_TICKET_UUID` | UUID of the ticket being processed |
 | `FULCRUM_RUN_UUID` | UUID of the current execution run |
+
+**Note:** `FULCRUM_DISPATCH_TOKEN` is deprecated. Use `FULCRUM_RUN_TOKEN` instead. The client will prefer `FULCRUM_RUN_TOKEN` when both are set.
 
 ### Optional
 
