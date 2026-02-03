@@ -1,11 +1,11 @@
-## Kick Start
+## Kickstart Tasks
 - [ ] Read UNFURL.md and sop.md; understand requirement and decompose them into Task List section; NOTE: NEVER attempt to do all of the task at once. Find reasonable chunks to work on at any given time. No need to add additional verification at the end because we already have a Completion Checklist section
 - [ ] If we don't have any code yet but internal-db has tables; and the tables seem to be either empty or have test/sample data, please clean up (these are remenants of past unfurls that might've failed)
 
-## Task List
+## Main Task List
 
 
-## Completion Checklist
+## Completion Checklist Tasks
 
 - [ ] All functions fully implemented (no stubs, no NotImplementedError)
 - [ ] Migrations APPLIED (not just created)
