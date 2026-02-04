@@ -1,6 +1,6 @@
 ## Kickstart Tasks (Please check these off if complete)
 - [ ] Read UNFURL.md and sop.md; understand requirement and decompose them into Task List section; NOTE: NEVER attempt to do all of the task at once. Find reasonable chunks to work on at any given time. No need to add additional verification at the end because we already have a Completion Checklist section
-- [ ] If we don't have any code yet but internal-db has tables; and the tables seem to be either empty or have test/sample data, please clean up (these are remenants of past unfurls that might've failed)
+- [ ] If we don't have any code yet but internal-db has tables; and the tables seem to be either empty or have test/sample data, please delete those tables (these are remenants of past unfurls that might've failed)
 
 ## Main Task List
 
