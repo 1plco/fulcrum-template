@@ -46,6 +46,7 @@ client = AsyncBrowserUse(api_key="bu_...")
 | `llm` | `str` | No | LLM model (default: "browser-use-llm") |
 | `schema` | `BaseModel` | No | Pydantic model for structured output |
 | `secrets` | `Dict[str, str]` | No | Secrets for credential injection. Use `{{key}}` placeholders in task. |
+| `session_id` | `str` | No | Session UUID for persistent browser state. See [session_reference.md](session_reference.md). |
 
 ### Available LLM Models
 

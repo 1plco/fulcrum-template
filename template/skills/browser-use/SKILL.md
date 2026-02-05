@@ -199,6 +199,103 @@ async def scrape_articles():
 asyncio.run(scrape_articles())
 ```
 
+## Session Management (Persistent Browser State)
+
+Use sessions when tasks need to share browser state — for example, logging in once and then performing actions across multiple tasks in the same authenticated context.
+
+| Scenario | Use Session? |
+|----------|-------------|
+| One-off scrape / data extraction | No — implicit session is fine |
+| Login then interact with authenticated pages | Yes |
+| Multi-step workflow sharing cookies/state | Yes |
+| Parallel independent tasks | No — separate tasks run faster |
+
+### Unfurl: Create and Save a Profile
+
+During unfurl, create a persistent browser profile and save its ID as a resource for ticket execution.
+
+```python
+from browser_use_sdk import BrowserUse
+from pathlib import Path
+
+client = BrowserUse()
+
+# Create a persistent browser profile (do this during unfurl)
+profile = client.profiles.create_profile(name="my-app-login")
+
+# Save profile ID as a resource for ticket execution
+profile_path = Path("resources/browser_use_profile_id.txt")
+profile_path.parent.mkdir(parents=True, exist_ok=True)
+profile_path.write_text(profile.id)
+```
+
+### Ticket: Use Saved Profile for Session-Based Tasks
+
+During ticket execution, load the profile, create a session, and run tasks that share authenticated state.
+
+```python
+from browser_use_sdk import BrowserUse
+from fulcrum_sdk._internal.dispatch import get_dispatch_client
+from pathlib import Path
+
+client = BrowserUse()
+dispatch = get_dispatch_client()
+
+# 1. Load the profile created during unfurl
+profile_id = Path("resources/browser_use_profile_id.txt").read_text().strip()
+
+# 2. Create a session with the profile
+session = client.sessions.create_session(profile_id=profile_id)
+
+dispatch.dispatch_external_ref(
+    summary="Browser session created with persistent profile",
+    provider="browser-use",
+    ref_type="session",
+    ref_id=session.id,
+)
+
+# 3. Login task — state saved to profile for subsequent tasks
+login_task = client.tasks.create_task(
+    task="Go to example.com/login, enter {{username}} and {{password}}, click Login",
+    session_id=session.id,
+    secrets={"username": "my_user", "password": "my_pass"},
+    llm="browser-use-llm",
+)
+dispatch.dispatch_external_ref(
+    summary="Browser login task",
+    provider="browser-use",
+    ref_type="task",
+    ref_id=login_task.id,
+)
+login_task.complete()
+
+# 4. Subsequent tasks share the logged-in state
+data_task = client.tasks.create_task(
+    task="Go to example.com/dashboard and extract the monthly revenue figure",
+    session_id=session.id,
+    llm="browser-use-llm",
+)
+dispatch.dispatch_external_ref(
+    summary="Browser data extraction task",
+    provider="browser-use",
+    ref_type="task",
+    ref_id=data_task.id,
+)
+result = data_task.complete()
+print(result.output)
+
+# 5. Stop the session when done
+client.sessions.stop_session(session.id)
+```
+
+**Key points:**
+- **Profile** = persistent storage (cookies, local storage). Created during unfurl, reused in ticket.
+- **Session** = active browser instance using a profile. Pass `session.id` as `session_id` to `create_task`.
+- Dispatch both session and task `external_ref` entries for timeline visibility.
+- Always stop sessions when done to free resources.
+
+For detailed profile/session API parameters, see [references/session_reference.md](references/session_reference.md).
+
 ## Streaming Progress
 
 Monitor task execution in real-time:
@@ -365,4 +462,5 @@ except Exception as e:
 
 ## References
 
-For detailed API documentation, see [references/api_reference.md](references/api_reference.md).
+- [API Reference](references/api_reference.md) - Task creation, execution, streaming, and structured output
+- [Session Reference](references/session_reference.md) - Profile and session management for persistent browser state
