@@ -28,7 +28,7 @@ AUTO_COMMIT=true
 SKIP_TESTS=false
 SKIP_LINT=false
 AI_ENGINE="claude"  # claude, opencode, cursor, codex, qwen, or droid
-MODEL_OVERRIDE=""   # Override default model for any engine (e.g., "sonnet", "gpt-4o-mini")
+MODEL_OVERRIDE="claude-opus-4-6"   # Override default model for any engine (e.g., "sonnet", "gpt-4o-mini")
 DRY_RUN=false
 MAX_ITERATIONS=0  # 0 = unlimited
 MAX_RETRIES=3
