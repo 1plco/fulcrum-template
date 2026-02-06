@@ -73,6 +73,8 @@ This step is MANDATORY when:
 
 **CRITICAL**: Do NOT just create migration files - you MUST execute them. The internal database must be fully operational after unfurl completes.
 
+**Data Initialization**: If any tables require initial or reference data to function (lookup tables, seed data, reference records from `resources/`), populate them as part of the migration or in a separate seed step. Do NOT leave tables empty if the SOP or functions depend on pre-existing data. Read from `resources/` files or skills to source real data — never fabricate seed data.
+
 ```bash
 # Apply migrations
 uv run python migrations/001_initial.py
