@@ -2,6 +2,7 @@
 - [ ] Read UNFURL.md and sop.md; understand requirements and decompose them into the Main Task List section as blocks of logical, independent tasks — NOT fine-grained implementation sub-tasks. Each task block should represent a coherent unit of work (e.g. "Implement invoice extraction pipeline" not "Create model" + "Write parser" + "Add validation" + "Write test" as separate items). NOTE: NEVER attempt to do all tasks at once. Work through one logical block at a time. No need to add additional verification at the end because we already have a Completion Checklist section
 - [ ] If we don't have any code yet but internal-db has tables; and the tables seem to be either empty or have test/sample data, please delete those tables (these are remenants of past unfurls that might've failed)
 - [ ] Check if reference data in `resources/` needs to be loaded into internal-db tables; if tables should contain data from resource files, populate them. Do NOT leave tables empty if functions depend on that data.
+- [ ] IMPORTANT: Tests MUST NOT write to internal-db. If database tests are needed, stage transactions without committing (dry run) and check output — never insert test rows.
 
 ## Main Task List
 
