@@ -12,7 +12,7 @@ Generate Python code from `sop.md`.
 
 1. **Hypothesis** - Read sop.md, propose example request that triggers SOP flow
 2. **Explore** - Read all /skills, /resources, /models, /functions, /migrations
-3. **Plan** - Plan implementation of library to execute sop.md, including migrations
+3. **Plan** - Plan implementation of library to execute sop.md, including migrations. Break the work into blocks of logical, independent tasks — NOT fine-grained implementation sub-tasks. Each task block should represent a coherent unit of work (e.g. "Implement invoice extraction pipeline" not "Create model" + "Write parser" + "Add validation" + "Write test" as separate items).
 4. **Critique** - Think of a request that would NOT work; if found, loop back with that request
 
 ## Execution Loop (until all validation passes)

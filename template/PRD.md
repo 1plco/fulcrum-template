@@ -1,5 +1,5 @@
 ## Kickstart Tasks (Please check these off if complete)
-- [ ] Read UNFURL.md and sop.md; understand requirement and decompose them into Task List section; NOTE: NEVER attempt to do all of the task at once. Find reasonable chunks to work on at any given time. No need to add additional verification at the end because we already have a Completion Checklist section
+- [ ] Read UNFURL.md and sop.md; understand requirements and decompose them into the Main Task List section as blocks of logical, independent tasks — NOT fine-grained implementation sub-tasks. Each task block should represent a coherent unit of work (e.g. "Implement invoice extraction pipeline" not "Create model" + "Write parser" + "Add validation" + "Write test" as separate items). NOTE: NEVER attempt to do all tasks at once. Work through one logical block at a time. No need to add additional verification at the end because we already have a Completion Checklist section
 - [ ] If we don't have any code yet but internal-db has tables; and the tables seem to be either empty or have test/sample data, please delete those tables (these are remenants of past unfurls that might've failed)
 
 ## Main Task List
